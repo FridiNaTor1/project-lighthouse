@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using Kettu;
 using LBPUnion.ProjectLighthouse.Helpers;
+using LBPUnion.ProjectLighthouse.Helpers.Extensions;
 
 namespace LBPUnion.ProjectLighthouse.Logging {
     public class LighthouseFileLogger : LoggerBase {
@@ -11,7 +12,7 @@ namespace LBPUnion.ProjectLighthouse.Logging {
         {
             FileHelper.EnsureDirectoryCreated(logsDirectory);
             
-            File.AppendAllText(Path.Combine(logsDirectory, line.LoggerLevel + ".log"), line.LineData + "\n");
+            File.AppendAllText(Path.Combine(logsDirectory, line.LoggerLevel.Name.ToFileName() + ".log"), line.LineData + "\n");
             File.AppendAllText(Path.Combine(logsDirectory, "all.log"), line.LineData + "\n");
         }
     }
