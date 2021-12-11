@@ -26,7 +26,12 @@ namespace LBPUnion.ProjectLighthouse.Types
         public string Biography { get; set; }
 
         [NotMapped]
-        public int Reviews => 0;
+        public int Reviews {
+            get {
+                using Database database = new();
+                return database.Reviews.Count(r => r.ReviewerId == this.UserId);
+            }
+        }
 
         [NotMapped]
         public int Comments {
@@ -142,9 +147,9 @@ namespace LBPUnion.ProjectLighthouse.Types
                           LbpSerializer.StringElement("planets", this.PlanetHash) +
                           LbpSerializer.BlankElement("photos") +
                           LbpSerializer.StringElement("heartCount", this.Hearts) +
-                          LbpSerializer.StringElement("yay2", YayHash) +
-                          LbpSerializer.StringElement("boo2", YayHash) +
-                          LbpSerializer.StringElement("meh2", YayHash);
+                          LbpSerializer.StringElement("yay2", this.YayHash) +
+                          LbpSerializer.StringElement("boo2", this.YayHash) +
+                          LbpSerializer.StringElement("meh2", this.YayHash);
             this.ClientsConnected.Serialize();
 
             return LbpSerializer.TaggedStringElement("user", user, "type", "user");
@@ -221,7 +226,7 @@ namespace LBPUnion.ProjectLighthouse.Types
         #nullable enable
         public override bool Equals(object? obj)
         {
-            if (obj is User user) return user.UserId == UserId;
+            if (obj is User user) return user.UserId == this.UserId;
 
             return false;
         }
