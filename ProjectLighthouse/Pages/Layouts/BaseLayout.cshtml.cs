@@ -21,7 +21,7 @@ namespace LBPUnion.ProjectLighthouse.Pages.Layouts
             new PageNavigationItem("Home", "/", "home"),
             new PageNavigationItem("Photos", "/photos/0", "camera"),
             new PageNavigationItem("Levels", "/slots/0", "certificate"),
-            new PageNavigationItem("Rules, "/rules", "rules"),
+            new PageNavigationItem("Rules, "/rules", "Rules"),
         };
 
         public readonly List<PageNavigationItem> NavigationItemsRight = new();
