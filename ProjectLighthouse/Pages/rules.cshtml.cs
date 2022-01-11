@@ -7,9 +7,4 @@ using Microsoft.AspNetCore.Mvc;
 namespace LBPUnion.ProjectLighthouse.Pages
 {
     public class rules : BaseLayout
-    {
-
-            return this.Page();
-     
-    }
 }
