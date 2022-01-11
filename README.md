@@ -1,3 +1,12 @@
+# This is my fork of Project Lighthouse
+I made a few minor changes to the website to include the link to this fork, aswell as credits of the Project Lighthouse Team. and mention of Admins of this instance, so you can have an account made for you, which is needed to connect to the server, 403 error is normal first time, check the authentication page on the website http://fridinator.fo:10060 if your Public IP is shown as an authentication attempt, whitelist it by accepting the request, then restart your game, and it should connect correctly.
+
+Are you looking for the patched version of RPCS3? I have a fork that includes binaries, so you don't have to compile it yourself https://github.com/FridiNaTor1/rpcs3
+
+Remember you need to patch your eboot either with an Hex editor, or by using UnionPatcher(https://github.com/LBPUnion/UnionPatcher/), which is the perferred option for starters. If you play on real hardware, or you want to just be able to play the game on RPCS3 by double clicking it, you will also need a resigner, like trueancestor.
+
+The rest of this except the mention of jvyden fork of RPCS3 which is removed because it maybe confusing if there are two forks in this readme. And the change to localhost into fridinator.fo , will be straight from the original Project Lighthouse, as it gives you information about the project, aswell as a small tutorial of UnionPatcher, and the compatibility list. It will also give you a link to their Discord, which will have some people that could help you. I will have a discord server for this instance too in the near future, as the Official Instance is fully private atm, but mine you can get access too, you just need an admin to make you an account.
+
 # Project Lighthouse
 
 Project Lighthouse is a clean-room, open-source custom server for LittleBigPlanet. This is a project conducted by the [LBP Union Ministry of Technology Research and Development team.](https://www.lbpunion.com/technology) For concerns and inquiries about the project, please [contact us here.](https://www.lbpunion.com/contact) For general questions and discussion about Project Lighthouse, please see the [megathread](https://www.lbpunion.com/forum/union-hall/project-lighthouse-littlebigplanet-private-servers-megathread) on our forum. 
@@ -36,9 +45,6 @@ to release. You can also follow this guide if you want to learn how to modify yo
 There are also community-provided guides in [the official LBP Union Discord](https://www.lbpunion.com/discord), which
 you can follow at your own discretion.
 
-*Note: This requires a modified copy of RPCS3. You can find a working
-version [on our GitHub](https://github.com/LBPUnion/rpcs3).*
-
 Start by getting a copy of LittleBigPlanet 2 installed. It can be digital (NPUA80662) or disc (BCUS98245). For those
 that don't, the [RPCS3 Quickstart Guide](https://rpcs3.net/quickstart) should cover it.
 
@@ -53,7 +59,7 @@ This should give you a file named `EBOOT.elf` in the same folder. Next, fire up 
 correct project to start, e.g. on Mac launch `UnionPatcher.Gui.MacOS`.)
 
 Now that you have your decrypted eboot, open UnionPatcher and select the `EBOOT.elf` you got earlier in the top box,
-enter `http://localhost:10060/LITTLEBIGPLANETPS3_XML` in the second, and the output filename in the third. For this
+enter `http://fridinator.fo:10060/LITTLEBIGPLANETPS3_XML` in the second, and the output filename in the third. For this
 guide I'll use `EBOOTlocalhost.elf`.
 
 Now, copy the `EBOOTlocalhost.elf` file to where you got your `EBOOT.elf` file from, and you're now good to go.
