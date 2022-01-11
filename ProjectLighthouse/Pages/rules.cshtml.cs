@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LBPUnion.ProjectLighthouse.Pages
 {
-    public class RulesPage : BaseLayout
+    public class rules : BaseLayout
     {
 
             return this.Page();
