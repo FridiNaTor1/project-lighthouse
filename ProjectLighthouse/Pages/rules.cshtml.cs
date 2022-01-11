@@ -8,5 +8,7 @@ namespace LBPUnion.ProjectLighthouse.Pages
 {
     public class rules : BaseLayout
     {
+            public rules(Database database) : base(database)
+        {}
     }
 }
