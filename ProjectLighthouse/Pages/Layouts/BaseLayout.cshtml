@@ -160,12 +160,39 @@
     <footer>
         <div class="ui black attached inverted segment">
             <div class="ui container">
-                
-                    <h4>Credits:<p>The Project Lighthouse team as what they are called on Github: jvyden, LumaLivy, alkalinethunder, turecross321, frickinfire, Zandyyy and m88youngling</p></h4>
+                <button type="button" class="ui inverted button collapsible
+                                             <b>Credits</b>
+                                             </button>
+                                             
+                                             <div style="display=none" id="credits-of-lighthouse-team">
+                                                <br>
+                                                <p>The Project Lighthouse team</p>
+                                                <p>jvyden, LumaLivy, alkalinethunder, turecross321, frickinfire, Zandyyy and m88youngling</p>
+                                             </div>                                                         
                     <h6><a href="https://github.com/FridiNaTor1/project-lighthouse">Here's the link to the minor changes I made to the source code</a></h6>
                 
             </div>
         </div>
+        <script>
+                const collapsible = document.getElementsByClassName("collapsible");
+                
+                for (let i = 0; i < collapsible.length; i++) 
+                {
+                  collapsible[i].addEventListener("click", function() 
+                  {
+                    this.classList.toggle("active");
+                    const content = this.nextElementSibling;
+                    if (content.style.display === "block") 
+                    {
+                      content.style.display = "none";
+                    } 
+                    else 
+                    {
+                      content.style.display = "block";
+                    }
+                  });
+                }
+            </script>                                                                           
         @if (ServerStatics.IsDebug)
         {
             <div class="ui red attached inverted segment">
