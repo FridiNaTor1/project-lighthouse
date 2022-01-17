@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Kettu;
 using LBPUnion.ProjectLighthouse.Helpers;
+using LBPUnion.ProjectLighthouse.Helpers.Extensions;
 using LBPUnion.ProjectLighthouse.Logging;
 using LBPUnion.ProjectLighthouse.Types;
 using LBPUnion.ProjectLighthouse.Types.Match;
@@ -53,8 +54,10 @@ namespace LBPUnion.ProjectLighthouse.Controllers
             }
             catch(Exception e)
             {
-                Logger.Log("Exception while parsing MatchData: " + e, LoggerLevelMatch.Instance);
-                Logger.Log("Data: " + bodyString, LoggerLevelMatch.Instance);
+                Logger.Log("Exception while parsing matchData: ", LoggerLevelMatch.Instance);
+                string[] lines = e.ToDetailedException().Split("\n");
+                foreach (string line in lines) Logger.Log(line, LoggerLevelMatch.Instance);
+                Logger.Log("Associated matchData: " + bodyString, LoggerLevelMatch.Instance);
 
                 return this.BadRequest();
             }
@@ -62,7 +65,7 @@ namespace LBPUnion.ProjectLighthouse.Controllers
             if (matchData == null)
             {
                 Logger.Log("Could not parse match data: matchData is null", LoggerLevelMatch.Instance);
-                Logger.Log("Data: " + bodyString, LoggerLevelMatch.Instance);
+                Logger.Log("Associated matchData: " + bodyString, LoggerLevelMatch.Instance);
                 return this.BadRequest();
             }
 
@@ -77,7 +80,7 @@ namespace LBPUnion.ProjectLighthouse.Controllers
             if (matchData is UpdateMyPlayerData playerData)
             {
                 MatchHelper.SetUserLocation(user.UserId, gameToken.UserLocation);
-                Room? room = RoomHelper.FindRoomByUser(user, true);
+                Room? room = RoomHelper.FindRoomByUser(user, gameToken.GameVersion, true);
 
                 if (playerData.RoomState != null)
                     if (room != null && Equals(room.Host, user))
@@ -86,7 +89,7 @@ namespace LBPUnion.ProjectLighthouse.Controllers
 
             if (matchData is FindBestRoom && MatchHelper.UserLocations.Count > 1)
             {
-                FindBestRoomResponse? response = RoomHelper.FindBestRoom(user, gameToken.UserLocation);
+                FindBestRoomResponse? response = RoomHelper.FindBestRoom(user, gameToken.GameVersion, gameToken.UserLocation);
 
                 if (response == null) return this.NotFound();
 
@@ -108,7 +111,7 @@ namespace LBPUnion.ProjectLighthouse.Controllers
                 }
 
                 // Create a new one as requested
-                RoomHelper.CreateRoom(users, createRoom.RoomSlot);
+                RoomHelper.CreateRoom(users, gameToken.GameVersion, createRoom.RoomSlot);
             }
 
             #endregion

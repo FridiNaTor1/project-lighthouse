@@ -89,15 +89,21 @@ namespace LBPUnion.ProjectLighthouse.Controllers
             return this.Ok(slot.Serialize(ratedLevel, visitedLevel));
         }
 
-        [HttpGet("slots/lbp2cool")]
         [HttpGet("slots/cool")]
+        public async Task<IActionResult> Lbp1CoolSlots([FromQuery] int page)
+        {
+            const int pageSize = 30;
+            return await CoolSlots((page - 1) * pageSize, pageSize);
+        }
+
+        [HttpGet("slots/lbp2cool")]
         public async Task<IActionResult> CoolSlots
         (
             [FromQuery] int pageStart,
             [FromQuery] int pageSize,
-            [FromQuery] string gameFilterType,
-            [FromQuery] int players,
-            [FromQuery] Boolean move,
+            [FromQuery] string? gameFilterType = null,
+            [FromQuery] int? players = null,
+            [FromQuery] bool? move = null,
             [FromQuery] int? page = null
         )
         {
@@ -218,9 +224,9 @@ namespace LBPUnion.ProjectLighthouse.Controllers
         (
             [FromQuery] int pageStart,
             [FromQuery] int pageSize,
-            [FromQuery] string gameFilterType,
-            [FromQuery] int players,
-            [FromQuery] Boolean move,
+            [FromQuery] string? gameFilterType = null,
+            [FromQuery] int? players = null,
+            [FromQuery] bool? move = null,
             [FromQuery] string? dateFilterType = null
         )
         {
@@ -243,9 +249,9 @@ namespace LBPUnion.ProjectLighthouse.Controllers
         (
             [FromQuery] int pageStart,
             [FromQuery] int pageSize,
-            [FromQuery] string gameFilterType,
-            [FromQuery] int players,
-            [FromQuery] Boolean move,
+            [FromQuery] string? gameFilterType = null,
+            [FromQuery] int? players = null,
+            [FromQuery] bool? move = null,
             [FromQuery] string? dateFilterType = null
         )
         {
@@ -282,9 +288,9 @@ namespace LBPUnion.ProjectLighthouse.Controllers
         (
             [FromQuery] int pageStart,
             [FromQuery] int pageSize,
-            [FromQuery] string gameFilterType,
-            [FromQuery] int players,
-            [FromQuery] Boolean move,
+            [FromQuery] string? gameFilterType = null,
+            [FromQuery] int? players = null,
+            [FromQuery] bool? move = null,
             [FromQuery] string? dateFilterType = null
         )
         {
@@ -302,7 +308,7 @@ namespace LBPUnion.ProjectLighthouse.Controllers
             return this.Ok(LbpSerializer.TaggedStringElement("slots", response, "hint_start", pageStart + Math.Min(pageSize, 30)));
         }
 
-        public GameVersion GetGameFilter(string gameFilterType)
+        public GameVersion GetGameFilter(string? gameFilterType)
         {
             return gameFilterType switch
             {
@@ -310,11 +316,12 @@ namespace LBPUnion.ProjectLighthouse.Controllers
                 "lbp2" => GameVersion.LittleBigPlanet2,
                 "lbp3" => GameVersion.LittleBigPlanet3,
                 "both" => GameVersion.LittleBigPlanet2, // LBP2 default option
+                null => GameVersion.LittleBigPlanet1,
                 _ => GameVersion.Unknown,
             };
         }
 
-        public IQueryable<Slot> FilterByRequest(string gameFilterType, string? dateFilterType)
+        public IQueryable<Slot> FilterByRequest(string? gameFilterType, string? dateFilterType)
         {
             string _dateFilterType = dateFilterType ?? "";
 
