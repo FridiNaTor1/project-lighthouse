@@ -15,7 +15,7 @@
     if (user != null)
     {
 
-        isHearted = await database.HeartedProfiles.FirstOrDefaultAsync(h => h.UserId == Model.User.UserId) != null;
+        isHearted = await database.HeartedProfiles.FirstOrDefaultAsync(h => h.HeartedUserId == Model.User.HeartedUserId && h.UserId == user.UserId) != null;
     }
 
     string callbackUrl = (string)ViewData["CallbackUrl"];
