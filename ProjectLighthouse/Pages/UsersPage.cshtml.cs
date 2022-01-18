@@ -6,6 +6,7 @@ using JetBrains.Annotations;
 using LBPUnion.ProjectLighthouse.Helpers;
 using LBPUnion.ProjectLighthouse.Pages.Layouts;
 using LBPUnion.ProjectLighthouse.Types;
+using LBPUnion.ProjectLighthouse.Types.Levels;
 using LBPUnion.ProjectLighthouse.Types.Settings;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -38,7 +39,7 @@ namespace LBPUnion.ProjectLighthouse.Pages
             }
             
             this.Users = await this.Database.Users.Include
-                    (p => p.CreatorId)
+                    (p => p.Creator)
                 .OrderByDescending(p => p.LastUploaded)
                 .Skip(pageNumber * ServerStatics.PageSize)
                 .Take(ServerStatics.PageSize)
