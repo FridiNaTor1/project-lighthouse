@@ -22,7 +22,7 @@ namespace LBPUnion.ProjectLighthouse.Pages.Layouts
             new PageNavigationItem("Photos", "/photos/0", "camera"),
             new PageNavigationItem("Levels", "/slots/0", "certificate"),
             new PageNavigationItem("Rules", "/rules", "info"),
-            new PageNavigationItem("Profiles", "/users", "users"),
+//            new PageNavigationItem("Profiles", "/users", "users"),
         };
 
         public readonly List<PageNavigationItem> NavigationItemsRight = new();
