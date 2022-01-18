@@ -29,7 +29,8 @@ namespace LBPUnion.ProjectLighthouse.Pages
         public async Task<IActionResult> OnGet([FromRoute] int pageNumber)
         {
             this.UserCount = await StatisticsHelper.UserCount();
-
+            bool Name = await this.Database.Users.FirstOrDefaultAsync(u => u.Username)
+            bool Id = await this.Database.Users.FirstOrDefaultAsync(u => u.UserId)
             this.PageNumber = pageNumber;
             this.PageAmount = (int)Math.Ceiling((double)this.UserCount / ServerStatics.PageSize);
 
