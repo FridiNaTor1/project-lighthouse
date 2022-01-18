@@ -5,12 +5,15 @@ using LBPUnion.ProjectLighthouse.Helpers;
 using LBPUnion.ProjectLighthouse.Serialization;
 using LBPUnion.ProjectLighthouse.Types.Profiles;
 using LBPUnion.ProjectLighthouse.Types.Settings;
-using LBPUnion.ProjectLighthouse.Types.Levels.Slot;
 
 namespace LBPUnion.ProjectLighthouse.Types
 {
     public class User
     {
+                [XmlAttribute("type")]
+        [NotMapped]
+        public string Type { get; set; } = "user";
+        
         public readonly ClientsConnected ClientsConnected = new();
         public int UserId { get; set; }
         public string Username { get; set; }
