@@ -39,8 +39,8 @@ namespace LBPUnion.ProjectLighthouse.Pages
             }
             
             this.Users = await this.Database.Users.Include
-                    (UserId => user.UserId)
-                .OrderByDescending(user.UserId)
+                    (b => b.UserId)
+                .OrderByDescending(b.UserId)
                 .Skip(pageNumber * ServerStatics.PageSize)
                 .Take(ServerStatics.PageSize)
                 .ToListAsync();
