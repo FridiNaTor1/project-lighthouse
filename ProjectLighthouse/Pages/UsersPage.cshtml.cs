@@ -20,9 +20,9 @@ namespace LBPUnion.ProjectLighthouse.Pages
 
         public int UserCount;
         
-        public int UserId;
+        public int Id;
         
-        public string Username;
+        public string Name;
         
         public int PageAmount;
 
@@ -33,8 +33,8 @@ namespace LBPUnion.ProjectLighthouse.Pages
         public async Task<IActionResult> OnGet([FromRoute] int pageNumber)
         {
             this.UserCount = await StatisticsHelper.UserCount();
-            this.UserId = await this.Database.Users.Where(u => u.UserId).ToListAsync();
-            this.Username = await this.Database.Users.Where(u => u.Username).ToListAsync();
+            this.Id = await this.Database.Users.Where(u => u.UserId).ToListAsync();
+            this.Name = await this.Database.Users.Where(u => u.Username).ToListAsync();
             this.PageNumber = pageNumber;
             this.PageAmount = (int)Math.Ceiling((double)this.UserCount / ServerStatics.PageSize);
 
@@ -44,8 +44,8 @@ namespace LBPUnion.ProjectLighthouse.Pages
             }
             
             this.Users = await this.Database.Users.Include
-                    (Username)
-                .OrderByDescending(UserId)
+                    (Name)
+                .OrderByDescending(Id)
                 .Skip(pageNumber * ServerStatics.PageSize)
                 .Take(ServerStatics.PageSize)
                 .ToListAsync();
