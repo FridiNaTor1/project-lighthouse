@@ -1,7 +1,7 @@
 @using LBPUnion.ProjectLighthouse
 @using LBPUnion.ProjectLighthouse.Types
 @using Microsoft.EntityFrameworkCore
-@model LBPUnion.ProjectLighthouse.Types.Accounts.User
+@model LBPUnion.ProjectLighthouse.Types.User
 
 @{
     User user = (User)ViewData["User"];
@@ -15,7 +15,7 @@
     if (user != null)
     {
 
-        isHearted = await database.HeartedLevels.FirstOrDefaultAsync(h => h.UserId == Model.User.UserId) != null;
+        isHearted = await database.HeartedProfiles.FirstOrDefaultAsync(h => h.UserId == Model.User.UserId) != null;
     }
 
     string callbackUrl = (string)ViewData["CallbackUrl"];
