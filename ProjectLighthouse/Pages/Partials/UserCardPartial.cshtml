@@ -1,0 +1,59 @@
+@using LBPUnion.ProjectLighthouse
+@using LBPUnion.ProjectLighthouse.Types
+@using Microsoft.EntityFrameworkCore
+@model LBPUnion.ProjectLighthouse.Types.Accounts.User
+
+@{
+    User user = (User)ViewData["User"];
+
+    await using Database database = new();
+
+    string userUsername = string.IsNullOrEmpty(Model.Username) ? "How do you exist?" : Model.Username;
+
+    bool isHearted = false;
+
+    if (user != null)
+    {
+
+        isHearted = await database.HeartedLevels.FirstOrDefaultAsync(h => h.UserId == Model.UserId) != null;
+    }
+
+    string callbackUrl = (string)ViewData["CallbackUrl"];
+    bool showLink = (bool?)ViewData["ShowLink"] ?? false;
+}
+<div class="ui grid">
+    <div class="eight wide column">
+        @if (showLink)
+        {
+            <h2 style="margin-bottom: 2px;">
+                <a href="~/user/@Model.UserId">@userUsername</a>
+            </h2>
+        }
+        else
+        {
+            <h1 style="margin-bottom: 2px;">
+                @userUsername
+            </h1>
+        }
+        <div class="statsUnderTitle" style="margin-bottom: 10px;">
+            <i class="pink heart icon" title="Hearts"></i> <span>@Model.Hearts</span>
+        </div>
+    </div>
+    <div class="eight wide right aligned column">
+        @if (user != null)
+        {
+            if (isHearted)
+            {
+                <a class="ui pink tiny button" href="/user/@Model.UserId/unheart?callbackUrl=@callbackUrl" title="Unheart">
+                    <i class="broken heart icon" style="margin: 0"></i>
+                </a>
+            }
+            else
+            {
+                <a class="ui pink tiny button" href="/user/@Model.UserId/heart?callbackUrl=@callbackUrl" title="Heart">
+                    <i class="heart icon" style="margin: 0"></i>
+                </a>
+            }
+        }
+    </div>
+</div>
