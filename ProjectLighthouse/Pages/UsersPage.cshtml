@@ -1,5 +1,5 @@
-@page "/slots/{pageNumber:int}"
-@using LBPUnion.ProjectLighthouse.Types.Profiles
+@page "/users/{pageNumber:int}"
+@using LBPUnion.ProjectLighthouse.Types
 @model LBPUnion.ProjectLighthouse.Pages.UsersPage
 
 @{
@@ -7,7 +7,7 @@
     Model.Title = "Users";
 }
 
-<p>There are @Model.User.UserCount total Players!</p>
+<p>There are @Model.UserCount total Players!</p>
 
 @foreach (User user in Model.Users)
 {
