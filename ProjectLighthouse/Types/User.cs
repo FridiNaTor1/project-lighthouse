@@ -1,6 +1,4 @@
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Xml.Serialization;
-using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using LBPUnion.ProjectLighthouse.Helpers;
@@ -12,10 +10,6 @@ namespace LBPUnion.ProjectLighthouse.Types
 {
     public class User
     {
-                [XmlAttribute("type")]
-        [NotMapped]
-        public string Type { get; set; } = "user";
-        
         public readonly ClientsConnected ClientsConnected = new();
         public int UserId { get; set; }
         public string Username { get; set; }
