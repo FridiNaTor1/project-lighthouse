@@ -20,6 +20,10 @@ namespace LBPUnion.ProjectLighthouse.Pages
 
         public int UserCount;
         
+        public int UserId;
+        
+        public string Username;
+        
         public int PageAmount;
 
         public List<User> Users;
