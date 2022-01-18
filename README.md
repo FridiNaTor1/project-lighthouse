@@ -3,7 +3,7 @@ I made a few minor changes to the website to include the link to this fork, aswe
 
 Are you looking for the patched version of RPCS3? I have a fork that includes binaries, so you don't have to compile it yourself https://github.com/FridiNaTor1/rpcs3
 
-Remember you need to patch your eboot either with an Hex editor, or by using UnionPatcher(https://github.com/LBPUnion/UnionPatcher/), which is the perferred option for starters. If you play on real hardware, or you want to just be able to play the game on RPCS3 by double clicking it, you will also need a resigner, like trueancestor.
+Remember you need to patch your eboot either with an Hex editor, or by using [UnionPatcher,](https://github.com/LBPUnion/UnionPatcher/) which is the perferred option for starters. If you play on real hardware, or you want to just be able to play the game on RPCS3 by double clicking it, you will also need a resigner, like trueancestor.
 
 The rest of this except the mention of jvyden fork of RPCS3 which is removed because it maybe confusing if there are two forks in this readme. And the change to localhost into fridinator.fo , will be straight from the original Project Lighthouse, as it gives you information about the project, aswell as a small tutorial of UnionPatcher, and the compatibility list. It will also give you a link to their Discord, which will have some people that could help you. We have a Discord server now that you can contact admins, and talk to other people in the server. Right now the Official Instance from LBPUnion is fully private atm, but mine you can get access too, you just need an admin to make you an account.
 You can join our Discord here https://discord.gg/qdGQbT8TaU
