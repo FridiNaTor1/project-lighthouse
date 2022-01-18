@@ -24,7 +24,7 @@
         @if (showLink)
         {
             <h2 style="margin-bottom: 2px;">
-                <a href="~/user/@Model.User.UserId">@userUsername</a>
+                <a href="~/user/@Model.UserId">@userUsername</a>
             </h2>
         }
         else
@@ -42,7 +42,7 @@
         {
             if (isHearted)
             {
-                <a class="ui pink tiny button" href="/user/@Model.User.UserId/unheart?callbackUrl=@callbackUrl" title="Unheart">
+                <a class="ui pink tiny button" href="/user/@Model.UserId/unheart?callbackUrl=@callbackUrl" title="Unheart">
                     <i class="broken heart icon" style="margin: 0"></i>
                 </a>
             }
