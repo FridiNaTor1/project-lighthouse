@@ -146,8 +146,8 @@
             </div>
         </noscript>
 		
-<!-- This is removed, as I don't know how it checks for License Violation, but I am following GNU Affero General Public License v3.0 On the bottom of every page on the site it gives you a credits button, aswell as a link to my Github Fork of Project-Lighthouse with all the changes I made to the Source Code, it's directly from Github.
-
+		//This is removed, as I don't know how it checks for License Violation, but I am following GNU Affero General Public License v3.0 On the bottom of every page on the site it gives you a credits button, aswell as a link to my Github Fork of Project-Lighthouse with all the changes I made to the Source Code, it's directly from Github.
+/*
         @if (!ServerStatics.IsDebug && VersionHelper.IsDirty)
         {
             <div class="ui bottom attached red message large">
@@ -160,7 +160,7 @@
                 </div>
             </div>
         }
--->		
+*/		
     </header>
     <div class="main">
         <div class="ui container">
