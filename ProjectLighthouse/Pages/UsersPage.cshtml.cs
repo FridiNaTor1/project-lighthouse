@@ -1,9 +1,12 @@
-#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
+using LBPUnion.ProjectLighthouse.Helpers;
 using LBPUnion.ProjectLighthouse.Pages.Layouts;
 using LBPUnion.ProjectLighthouse.Types;
+using LBPUnion.ProjectLighthouse.Types.Settings;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,19 +14,30 @@ namespace LBPUnion.ProjectLighthouse.Pages;
 
 public class UsersPage : BaseLayout
 {
+    public int PageNumber;
 
     public int UserCount;
 
     public List<User> Users;
-    public UsersPage(Database database) : base(database)
+
+    public UsersPage([NotNull] Database database) : base(database)
     {}
 
-    public async Task<IActionResult> OnGet()
+    public async Task<IActionResult> OnGet([FromRoute] int pageNumber)
     {
-        User? user = this.Database.UserFromWebRequest(this.Request);
+        this.UserCount = await StatisticsHelper.UserCount();
 
-        this.Users = await this.Database.Users.OrderByDescending(u => u.UserId).ToListAsync();
-        this.UserCount = this.Users.Count;
+        this.PageNumber = pageNumber;
+        this.PageAmount = (int)Math.Ceiling((double)this.UserCount / ServerStatics.PageSize);
+
+        if (this.PageNumber < 0 || this.PageNumber >= this.PageAmount) return this.Redirect($"/users/{Math.Clamp(this.PageNumber, 0, this.PageAmount - 1)}");
+
+        this.Users = await this.Database.Users.Where
+                (u => !u.Banned)
+            .OrderByDescending(b => b.UserId)
+            .Skip(pageNumber * ServerStatics.PageSize)
+            .Take(ServerStatics.PageSize)
+            .ToListAsync();
 
         return this.Page();
     }

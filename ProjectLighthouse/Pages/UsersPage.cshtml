@@ -1,4 +1,4 @@
-@page "/users"
+@page "/users/{pageNumber:int}"
 @using LBPUnion.ProjectLighthouse.Types
 @model LBPUnion.ProjectLighthouse.Pages.UsersPage
 
@@ -7,34 +7,26 @@
     Model.Title = "Users";
 }
 
-<p>There are currently @Model.UserCount users made!</p>
-<p><b>Note:</b> Users are ordered by most-recent-first.</p>
+<p>There are @Model.UserCount total users.</p>
 
-<div class="ui grid">
-    @foreach (User user in Model.Users)
-    {
-        string color = "blue";
-        string subtitle = "User";
-        if (user.IsAdmin)
+@foreach (User user in Model.Users)
+{
+    <div class="ui segment">
+        @await Html.PartialAsync("Partials/UserCardPartial", user, new ViewDataDictionary(ViewData)
         {
-            color = "yellow";
-            subtitle = "Admin";
-        }
-        if (user.Banned)
-        {
-            color = "red";
-            subtitle = $"Banned user! Reason: {user.BannedReason}";
-        }
+            {
+                "ShowLink", true
+            },
+        })
+    </div>
+}
 
-        subtitle += $" (id: {user.UserId})";
-
-        <div class="eight wide column">
-            <div class="ui @color segment">
-                <h2>
-                    <a href="/user/@user.UserId">@user.Username</a>
-                </h2>
-                <h3>@subtitle</h3>
-            </div>
-        </div>
-    }
-</div>
+@if (Model.PageNumber != 0)
+{
+    <a href="/users/@(Model.PageNumber - 1)">Previous Page</a>
+}
+@(Model.PageNumber + 1) / @(Model.PageAmount)
+@if (Model.PageNumber < Model.PageAmount - 1)
+{
+    <a href="/users/@(Model.PageNumber + 1)">Next Page</a>
+}
