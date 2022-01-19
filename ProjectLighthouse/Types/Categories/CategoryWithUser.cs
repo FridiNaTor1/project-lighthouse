@@ -52,7 +52,6 @@ public abstract class CategoryWithUser : Category
 
         string previewResults = "";
         if (previewSlot != null)
-        {
             previewResults = LbpSerializer.TaggedStringElement
             (
                 "results",
@@ -67,7 +66,6 @@ public abstract class CategoryWithUser : Category
                     },
                 }
             );
-        }
 
         return LbpSerializer.StringElement
         (
@@ -76,7 +74,7 @@ public abstract class CategoryWithUser : Category
             LbpSerializer.StringElement("description", this.Description) +
             LbpSerializer.StringElement("url", this.IngameEndpoint) +
             (previewSlot == null ? "" : previewResults) +
-            LbpSerializer.StringElement("icon", IconHash)
+            LbpSerializer.StringElement("icon", this.IconHash)
         );
     }
 }
