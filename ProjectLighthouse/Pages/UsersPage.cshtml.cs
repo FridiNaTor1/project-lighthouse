@@ -14,6 +14,8 @@ namespace LBPUnion.ProjectLighthouse.Pages;
 
 public class UsersPage : BaseLayout
 {
+    public int PageAmount;
+
     public int PageNumber;
 
     public int UserCount;
