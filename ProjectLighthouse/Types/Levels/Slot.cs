@@ -205,6 +205,9 @@ public class Slot
     [XmlElement("leveltype")]
     public string LevelType { get; set; } = "";
 
+    [XmlElement("vitaCrossControlRequired")]
+    public bool CrossControllerRequired { get; set; }
+
     public string SerializeResources()
     {
         return this.Resources.Aggregate("", (current, resource) => current + LbpSerializer.StringElement("resource", resource)) +
@@ -221,6 +224,7 @@ public class Slot
                           LbpSerializer.StringElement("description", this.Description) +
                           LbpSerializer.StringElement("icon", this.IconHash) +
                           LbpSerializer.StringElement("rootLevel", this.RootLevel) +
+                          LbpSerializer.StringElement("authorLabels", this.AuthorLabels) +
                           this.SerializeResources() +
                           LbpSerializer.StringElement("location", this.Location?.Serialize()) +
                           LbpSerializer.StringElement("initiallyLocked", this.InitiallyLocked) +
@@ -247,9 +251,7 @@ public class Slot
                           LbpSerializer.StringElement("lbp3PlayCount", this.PlaysLBP3) +
                           LbpSerializer.StringElement("lbp3CompletionCount", this.PlaysLBP3Complete) +
                           LbpSerializer.StringElement("lbp3UniquePlayCount", this.PlaysLBP3Unique) +
-                          LbpSerializer.StringElement("lbpvitaPlayCount", this.PlaysLBPVita) +
-                          LbpSerializer.StringElement("lbpvitaCompletionCount", this.PlaysLBPVitaComplete) +
-                          LbpSerializer.StringElement("lbpvitaUniquePlayCount", this.PlaysLBPVitaUnique) +
+                          LbpSerializer.StringElement("vitaCrossControlRequired", CrossControllerRequired) +
                           LbpSerializer.StringElement("thumbsup", this.Thumbsup) +
                           LbpSerializer.StringElement("thumbsdown", this.Thumbsdown) +
                           LbpSerializer.StringElement("averageRating", this.RatingLBP1) +

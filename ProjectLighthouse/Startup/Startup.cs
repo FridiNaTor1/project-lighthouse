@@ -12,9 +12,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.Internal;
 using Microsoft.Extensions.Primitives;
 
-namespace LBPUnion.ProjectLighthouse;
+namespace LBPUnion.ProjectLighthouse.Startup;
 
 public class Startup
 {
@@ -30,7 +32,7 @@ public class Startup
     {
         services.AddControllers();
         #if DEBUG
-            services.AddRazorPages().WithRazorPagesAtContentRoot().AddRazorRuntimeCompilation();
+        services.AddRazorPages().WithRazorPagesAtContentRoot().AddRazorRuntimeCompilation();
         #else
         services.AddRazorPages().WithRazorPagesAtContentRoot();
         #endif
@@ -53,6 +55,12 @@ public class Startup
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
             }
         );
+
+        #if DEBUG
+        services.AddSingleton<IHostLifetime, DebugWarmupLifetime>();
+        #else
+        services.AddSingleton<IHostLifetime, ConsoleLifetime>();
+        #endif
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -72,7 +80,7 @@ public class Startup
         }
 
         #if DEBUG
-            app.UseDeveloperExceptionPage();
+        app.UseDeveloperExceptionPage();
         #endif
 
         app.UseForwardedHeaders();
@@ -103,12 +111,12 @@ public class Startup
                 );
 
                 #if DEBUG
-                    // Log post body
-                    if (context.Request.Method == "POST")
-                    {
-                        context.Request.Body.Position = 0;
-                        Logger.Log(await new StreamReader(context.Request.Body).ReadToEndAsync(), LoggerLevelHttp.Instance);
-                    }
+                // Log post body
+                if (context.Request.Method == "POST")
+                {
+                    context.Request.Body.Position = 0;
+                    Logger.Log(await new StreamReader(context.Request.Body).ReadToEndAsync(), LoggerLevelHttp.Instance);
+                }
                 #endif
             }
         );
