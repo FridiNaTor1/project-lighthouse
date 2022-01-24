@@ -18,3 +18,4 @@ public static class StatisticsHelper
 
     public static async Task<int> PhotoCount() => await database.Photos.CountAsync();
 }
+
