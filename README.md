@@ -95,33 +95,30 @@ Then save the file, and your LBP1 EBOOT can now be used with RPCS3.
 
 Finally, take a break. Chances are that took a while.
 
-## Contributing Tips
+## DISCLAIMER
 
-### Database migrations
+This is **beta software**, and thus is **not stable nor is it secure**.
 
-Some modifications may require updates to the database schema. You can automatically create a migration file by:
+While Project Lighthouse is in a mostly working state, **we ask that our software not be used in a production
+environment until release**.
 
-1. Making sure the tools are installed. You can do this by running `dotnet tool restore`.
-2. Making sure `LIGHTHOUSE_DB_CONNECTION_STRING` is set correctly. See the `Running` section for more details.
-3. Modifying the database schema via the C# portion of the code. Do not modify the actual SQL database.
-4. Running `dotnet ef migrations add <NameOfMigrationInPascalCase> --project ProjectLighthouse`.
+This is because we have not entirely nailed security down yet, and **your instance WILL get attacked** as a result. It's
+happened before, and it'll happen again.
 
-This process will create a migration file from the changes made in the C# code.
+Simply put, **Project Lighthouse is not ready for the general public yet**.
 
-The new migrations will automatically be applied upon starting Lighthouse.
+In addition, we're not responsible if someone hacks your machine and wipes your database, so make frequent backups, and
+be sure to report any vulnerabilities. Thank you in advance.
 
-### Running tests
+## Building
 
-You can run tests either through your IDE or by running `dotnet tests`.
+This will be written when we're out of beta. Consider this your barrier to entry ;).
 
-Keep in mind while running database tests (which most tests are) you need to have `LIGHTHOUSE_DB_CONNECTION_STRING` set.
+It is recommended to build with `Release` if you plan to use Lighthouse in a production environment.
 
-### Continuous Integration (CI) Tips
+## Contributing
 
-- You can skip CI runs for a commit if you specify `[skip ci]` at the beginning of the commit name. This is useful for
-  formatting changes, etc.
-- When creating your first pull request, CI will not run initially. A team member will have to approve you for use of
-  running CI on a pull request. This is because of GitHub policy.
+Please see `CONTRIBUTING.md` for more information.
 
 ## Compatibility across games and platforms
 
