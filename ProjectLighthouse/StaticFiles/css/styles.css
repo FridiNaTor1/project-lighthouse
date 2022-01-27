@@ -42,3 +42,7 @@ background-color: #1b1c1d;
 div.ui.menu .item {
 color: grey;
 }
+
+div.ui.attached.menu:not(.tabular) {
+border: 1px solid #474747;
+}
