@@ -61,7 +61,7 @@ div.ui.segment {
     background: #323232;
 }
 
-div.ui.link.menu .item:hover, .ui.menu .dropdown.item:hover, .ui.menu .link.item:hover, .ui.menu a.item:hover {
+div.ui.link.menu .item:hover, div.ui.menu .dropdown.item:hover, div.ui.menu .link.item:hover, div.ui.menu a.item:hover {
     cursor: pointer;
     background: rgba(0,0,0,.03);
     color: rgb(85 223 108 / 95%);
