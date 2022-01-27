@@ -31,18 +31,38 @@ div.statsUnderTitle > span {
     margin-bottom: 1px;
 }
 
-div.segment {
-    background-color: #000000;
-    color: grey;
+body {
+    background: #000;
+    color: #99ff99
 }
 
 div.ui.menu {
-background-color: #1b1c1d;
-}
-div.ui.menu .item {
-color: grey;
+    background: #202020;
 }
 
 div.ui.attached.menu:not(.tabular) {
-border: 1px solid #474747;
+    border: 1px solid #000000;
+}
+
+div.ui.menu .item {
+    -webkit-transition: background .4s ease, color .4s ease, -webkit-box-shadow .4s ease;
+    transition: background .4s ease, color .4s ease, -webkit-box-shadow .4s ease;
+    transition: background .4s ease, color .4s ease, -webkit-box-shadow .4s ease;
+    transition: background .4s ease, color .4s ease, -webkit-box-shadow .4s ease;
+	color: #99FF99;
+}
+
+a {
+    color: #cdcdcd;
+    text-decoration: none;
+}
+
+div.ui.segment {
+    background: #323232;
+}
+
+div.ui.link.menu .item:hover, .ui.menu .dropdown.item:hover, .ui.menu .link.item:hover, .ui.menu a.item:hover {
+    cursor: pointer;
+    background: rgba(0,0,0,.03);
+    color: rgb(85 223 108 / 95%);
 }
