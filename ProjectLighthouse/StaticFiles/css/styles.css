@@ -36,9 +36,9 @@ div.segment {
     color: grey;
 }
 
-.ui.menu {
+div.ui.menu {
 background-color: #1b1c1d;
 }
-.ui.menu .item {
+div.ui.menu .item {
 color: grey;
 }
