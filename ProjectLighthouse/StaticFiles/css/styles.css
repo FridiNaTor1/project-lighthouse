@@ -21,3 +21,7 @@ div.statsUnderTitle > span {
 #lighthouse-debug-info > p {
     margin-bottom: 1px;
 }
+div.ui {
+    background-color: #000000;
+    color: grey;
+}
