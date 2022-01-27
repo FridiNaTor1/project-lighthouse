@@ -66,7 +66,7 @@ div.ui.link.menu .item:hover, div.ui.menu .dropdown.item:hover, div.ui.menu .lin
     background: rgba(0,0,0,.03);
     color: rgb(85 223 108 / 95%);
 }
-div.ui.form input:not([type]), div.ui.form input[type=date], div.ui.form input[type=datetime-local], div.ui.form input[type=email], div.ui.form input[type=file], div.ui.form input[type=number], div.ui.form input[type=password], div.ui.form input[type=search], div.ui.form input[type=tel], div.ui.form input[type=text], div.ui.form input[type=time], div.ui.form input[type=url] {
+div.ui.form input[type=text] {
 	background: #585b5e;
 }
 
