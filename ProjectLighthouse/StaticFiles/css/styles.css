@@ -35,3 +35,10 @@ div.segment {
     background-color: #000000;
     color: grey;
 }
+
+.ui.menu {
+background-color: #1b1c1d;
+}
+.ui.menu .item {
+color: grey;
+}
