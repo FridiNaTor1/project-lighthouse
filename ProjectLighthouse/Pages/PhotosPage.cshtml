@@ -12,7 +12,9 @@
 @foreach (Photo photo in Model.Photos)
 {
     <div class="ui segment">
+	<div style="background-color: #000000;">
         @await Html.PartialAsync("Partials/PhotoPartial", photo)
+		</div>
     </div>
 }
 
