@@ -66,10 +66,8 @@ div.ui.link.menu .item:hover, div.ui.menu .dropdown.item:hover, div.ui.menu .lin
     background: rgba(0,0,0,.03);
     color: rgb(85 223 108 / 95%);
 }
-div.ui.form {
-	background: #585b5e;
-}
 
 div.ui.input {
 	color: rgb(55 255 55);
+	background: #585b5e;
 }
