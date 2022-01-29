@@ -51,8 +51,7 @@ public class LoginController : ControllerBase
         if (npTicket == null)
         {
             Logger.Log("npTicket was null, rejecting login", LoggerLevelLogin.Instance);
-//            return this.BadRequest();
-			npTicket = _
+            return this.BadRequest();
         }
 
         IPAddress? remoteIpAddress = this.HttpContext.Connection.RemoteIpAddress;

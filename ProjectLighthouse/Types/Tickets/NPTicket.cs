@@ -106,7 +106,7 @@ public class NPTicket
             {
                 0x100 => Platform.PS3,
                 0x33333333 => Platform.RPCS3,
-                _ => Platform.Vita,
+                _ => Platform.Unknown,
             };
 
             if (npTicket.Platform == Platform.Unknown)
