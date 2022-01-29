@@ -52,7 +52,7 @@ public class LoginController : ControllerBase
         {
             Logger.Log("npTicket was null, rejecting login", LoggerLevelLogin.Instance);
 //            return this.BadRequest();
-			npTicket = _;
+			npTicket = _
         }
 
         IPAddress? remoteIpAddress = this.HttpContext.Connection.RemoteIpAddress;
