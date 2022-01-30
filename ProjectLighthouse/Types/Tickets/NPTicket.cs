@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 using Kettu;
 using LBPUnion.ProjectLighthouse.Helpers;
 using LBPUnion.ProjectLighthouse.Helpers.Extensions;
@@ -25,20 +26,47 @@ public class NPTicket
     public ulong IssuedDate { get; set; }
     public ulong ExpireDate { get; set; }
 
+    private string titleId { get; set; }
+
     public GameVersion GameVersion { get; set; }
+
+    private static void Read21Ticket(NPTicket npTicket, TicketReader reader)
+    {
+        reader.ReadTicketString(); // "Serial id", but its apparently not what we're looking for
+
+        npTicket.IssuerId = reader.ReadTicketUInt32();
+        npTicket.IssuedDate = reader.ReadTicketUInt64();
+        npTicket.ExpireDate = reader.ReadTicketUInt64();
+
+        reader.ReadTicketUInt64(); // PSN User id, we don't care about this
+
+        npTicket.Username = reader.ReadTicketString();
+
+        reader.ReadTicketString(); // Country
+        reader.ReadTicketString(); // Domain
+
+        npTicket.titleId = reader.ReadTicketString();
+    }
+
+    // Function is here for future use incase we ever need to read more from the ticket
+    private static void Read30Ticket(NPTicket npTicket, TicketReader reader)
+    {
+        Read21Ticket(npTicket, reader);
+    }
 
     /// <summary>
     ///     https://www.psdevwiki.com/ps3/X-I-5-Ticket
     /// </summary>
     public static NPTicket? CreateFromBytes(byte[] data)
     {
+        NPTicket npTicket = new();
         #if DEBUG
         if (data[0] == 'u' && ServerStatics.IsUnitTesting)
         {
             string dataStr = Encoding.UTF8.GetString(data);
             if (dataStr.StartsWith("unitTestTicket"))
             {
-                NPTicket npTicket = new()
+                npTicket = new NPTicket
                 {
                     IssuerId = 0,
                     ticketVersion = new Version(0, 0),
@@ -56,7 +84,6 @@ public class NPTicket
         #endif
         try
         {
-            NPTicket npTicket = new();
             using MemoryStream ms = new(data);
             using TicketReader reader = new(ms);
 
@@ -66,8 +93,6 @@ public class NPTicket
 
             reader.ReadUInt16BE(); // Ticket length, we don't care about this
 
-            if (npTicket.ticketVersion != "2.1") throw new NotImplementedException();
-
             #if DEBUG
             SectionHeader bodyHeader = reader.ReadSectionHeader();
             Logger.Log($"bodyHeader.Type is {bodyHeader.Type}", LoggerLevelLogin.Instance);
@@ -75,30 +100,35 @@ public class NPTicket
             reader.ReadSectionHeader();
             #endif
 
-            reader.ReadTicketString(); // "Serial id", but its apparently not what we're looking for
+            switch (npTicket.ticketVersion)
+            {
+                case "2.1":
+                    Read21Ticket(npTicket, reader);
+                    break;
+                case "3.0":
+                    Read30Ticket(npTicket, reader);
+                    break;
+                default: throw new NotImplementedException();
+            }
 
-            npTicket.IssuerId = reader.ReadTicketUInt32();
-            npTicket.IssuedDate = reader.ReadTicketUInt64();
-            npTicket.ExpireDate = reader.ReadTicketUInt64();
-
-            reader.ReadTicketUInt64(); // PSN User id, we don't care about this
-
-            npTicket.Username = reader.ReadTicketString();
-
-            reader.ReadTicketString(); // Country
-            reader.ReadTicketString(); // Domain
-
-            // Title ID, kinda..
-            // Data: "UP9000-BCUS98245_00
-            string titleId = reader.ReadTicketString();
-            titleId = titleId.Substring(7); // Trim UP9000-
-            titleId = titleId.Substring(0, titleId.Length - 3); // Trim _00 at the end
+            // We already read the title id, however we need to do some post-processing to get what we want.
+            // Current data: UP9000-BCUS98245_00
+            // We need to chop this to get the titleId we're looking for 
+            npTicket.titleId = npTicket.titleId.Substring(7); // Trim UP9000-
+            npTicket.titleId = npTicket.titleId.Substring(0, npTicket.titleId.Length - 3); // Trim _00 at the end
+            // Data now (hopefully): BCUS98245
 
             #if DEBUG
-            Logger.Log($"titleId is {titleId}", LoggerLevelLogin.Instance);
+            Logger.Log($"titleId is {npTicket.titleId}", LoggerLevelLogin.Instance);
             #endif
 
-            npTicket.GameVersion = GameVersionHelper.FromTitleId(titleId); // Finally, convert it to GameVersion
+            npTicket.GameVersion = GameVersionHelper.FromTitleId(npTicket.titleId); // Finally, convert it to GameVersion
+
+            if (npTicket.GameVersion == GameVersion.Unknown)
+            {
+                Logger.Log($"Could not determine game version from title id {npTicket.titleId}", LoggerLevelLogin.Instance);
+                return null;
+            }
 
             // Production PSN Issuer ID: 0x100
             // RPCN Issuer ID:           0x33333333
@@ -109,22 +139,49 @@ public class NPTicket
                 _ => Platform.Unknown,
             };
 
+            if (npTicket.Platform == Platform.PS3 && npTicket.GameVersion == GameVersion.LittleBigPlanetVita) npTicket.Platform = Platform.Vita;
+
             if (npTicket.Platform == Platform.Unknown)
             {
                 Logger.Log($"Could not determine platform from IssuerId {npTicket.IssuerId} decimal", LoggerLevelLogin.Instance);
                 return null;
             }
 
-            if (npTicket.GameVersion == GameVersion.Unknown)
+            #if DEBUG
+            Logger.Log("npTicket data:", LoggerLevelLogin.Instance);
+            foreach (string line in JsonSerializer.Serialize(npTicket).Split('\n'))
             {
-                Logger.Log($"Could not determine game version from title id {titleId}", LoggerLevelLogin.Instance);
-                return null;
+                Logger.Log(line, LoggerLevelLogin.Instance);
             }
+            #endif
 
             return npTicket;
         }
-        catch
+        catch(NotImplementedException)
         {
+            Logger.Log($"The ticket version {npTicket.ticketVersion} is not implemented yet.", LoggerLevelLogin.Instance);
+            Logger.Log
+            (
+                "Please let us know that this is a ticket version that is actually used on our issue tracker at https://github.com/LBPUnion/project-lighthouse/issues !",
+                LoggerLevelLogin.Instance
+            );
+
+            return null;
+        }
+        catch(Exception e)
+        {
+            Logger.Log("Failed to read npTicket!", LoggerLevelLogin.Instance);
+            Logger.Log("Either this is spam data, or the more likely that this is a bug.", LoggerLevelLogin.Instance);
+            Logger.Log
+            (
+                "Please report the following exception to our issue tracker at https://github.com/LBPUnion/project-lighthouse/issues!",
+                LoggerLevelLogin.Instance
+            );
+
+            foreach (string line in e.ToDetailedException().Split('\n'))
+            {
+                Logger.Log(line, LoggerLevelLogin.Instance);
+            }
             return null;
         }
     }
