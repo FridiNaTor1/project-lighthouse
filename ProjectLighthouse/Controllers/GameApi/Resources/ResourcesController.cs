@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,7 +13,7 @@ using LBPUnion.ProjectLighthouse.Types.Files;
 using Microsoft.AspNetCore.Mvc;
 using IOFile = System.IO.File;
 
-namespace LBPUnion.ProjectLighthouse.Controllers;
+namespace LBPUnion.ProjectLighthouse.Controllers.GameApi.Resources;
 
 [ApiController]
 [Produces("text/xml")]
