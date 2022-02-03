@@ -78,7 +78,6 @@ public class GameVersionHelper
         "CUSA01077",
         "CUSA01304",
         "NPUA81116",
-		"NPEA00515",
         "NPEA00515",
     };
 
