@@ -27,6 +27,7 @@ public class GameVersionHelper
         "NPHG00033",
         "NPHG00035",
         "NPEA00241",
+		"NPUA98208",
     };
 
     // https://serialstation.com/games/35e69aba-1872-4fd7-9d39-11ce75924040
