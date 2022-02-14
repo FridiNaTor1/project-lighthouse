@@ -15,7 +15,6 @@ ProjectLighthouse/.vscode/launch.json
 .vscode/launch.json
 .editorconfig
 launchSettings.json
-ProjectLighthouse/Properties/launchSettings.json
 
 # Lighthouse junk
 riderModule.iml
@@ -30,6 +29,7 @@ gitRemotes.txt
 gitUnpushed.txt
 logs/*
 npTicket*
+/ProjectLighthouse/Properties/*
 
 # MSBuild stuff
 bin/
