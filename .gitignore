@@ -29,7 +29,7 @@ gitRemotes.txt
 gitUnpushed.txt
 logs/*
 npTicket*
-/ProjectLighthouse/Properties/*
+Properties/*
 
 # MSBuild stuff
 bin/
