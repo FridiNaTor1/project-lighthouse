@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json.Serialization;
-using LBPUnion.ProjectLighthouse.Helpers;
 using LBPUnion.ProjectLighthouse.Serialization;
 using LBPUnion.ProjectLighthouse.Types.Profiles;
 using LBPUnion.ProjectLighthouse.Types.Settings;
@@ -11,7 +10,6 @@ namespace LBPUnion.ProjectLighthouse.Types;
 
 public class User
 {
-    public readonly ClientsConnected ClientsConnected = new();
     public int UserId { get; set; }
     public string Username { get; set; }
 
@@ -124,7 +122,13 @@ public class User
     public string Pins { get; set; } = "";
 
     [JsonIgnore]
-    public string PlanetHash { get; set; } = "";
+    public string PlanetHashLBP2 { get; set; } = "";
+
+    [JsonIgnore]
+    public string PlanetHashLBP3 { get; set; } = "";
+
+    [JsonIgnore]
+    public string PlanetHashLBPVita { get; set; } = "";
 
     [JsonIgnore]
     public int Hearts {
@@ -148,16 +152,10 @@ public class User
     #nullable enable
     [NotMapped]
     [JsonIgnore]
-    public string Status {
+    public UserStatus Status {
         get {
             using Database database = new();
-            LastContact? lastMatch = database.LastContacts.Where
-                    (l => l.UserId == this.UserId)
-                .FirstOrDefault(l => TimestampHelper.Timestamp - l.Timestamp < 300);
-
-            if (lastMatch == null) return "Offline";
-
-            return "Currently online on " + lastMatch.GameVersion.ToPrettyString();
+            return new UserStatus(database, this.UserId);
         }
     }
     #nullable disable
@@ -171,8 +169,8 @@ public class User
     public string Serialize(GameVersion gameVersion = GameVersion.LittleBigPlanet1)
     {
         string user = LbpSerializer.TaggedStringElement("npHandle", this.Username, "icon", this.IconHash) +
-                      LbpSerializer.StringElement("game", this.Game) +
-                      this.SerializeSlots(gameVersion == GameVersion.LittleBigPlanetVita) +
+                      LbpSerializer.StringElement("game", (int)gameVersion) +
+                      this.serializeSlots(gameVersion) +
                       LbpSerializer.StringElement("lists", this.Lists) +
                       LbpSerializer.StringElement("lists_quota", ServerSettings.Instance.ListsQuota) + // technically not a part of the user but LBP expects it
                       LbpSerializer.StringElement("biography", this.Biography) +
@@ -186,15 +184,29 @@ public class User
                       LbpSerializer.StringElement("favouriteUserCount", this.HeartedUsers) +
                       LbpSerializer.StringElement("lolcatftwCount", this.QueuedLevels) +
                       LbpSerializer.StringElement("pins", this.Pins) +
-                      LbpSerializer.StringElement("planets", this.PlanetHash) +
+                      serializeEarth(gameVersion) +
                       LbpSerializer.BlankElement("photos") +
                       LbpSerializer.StringElement("heartCount", this.Hearts) +
                       LbpSerializer.StringElement("yay2", this.YayHash) +
                       LbpSerializer.StringElement("boo2", this.BooHash) +
                       LbpSerializer.StringElement("meh2", this.MehHash);
-        this.ClientsConnected.Serialize();
 
         return LbpSerializer.TaggedStringElement("user", user, "type", "user");
+    }
+
+    private string serializeEarth(GameVersion gameVersion)
+    {
+        return LbpSerializer.StringElement
+        (
+            "planets",
+            gameVersion switch
+            {
+                GameVersion.LittleBigPlanet2 => PlanetHashLBP2,
+                GameVersion.LittleBigPlanet3 => PlanetHashLBP3,
+                GameVersion.LittleBigPlanetVita => PlanetHashLBPVita,
+                _ => "", // other versions do not have custom planets
+            }
+        );
     }
 
     #region Slots
@@ -225,17 +237,16 @@ public class User
 
     private static readonly string[] slotTypes =
     {
-//            "lbp1",
         "lbp2", "lbp3", "crossControl",
     };
 
-    private string SerializeSlots(bool isVita = false)
+    private string serializeSlots(GameVersion gameVersion)
     {
         string slots = string.Empty;
 
         string[] slotTypesLocal;
 
-        if (isVita)
+        if (gameVersion == GameVersion.LittleBigPlanetVita)
         {
             slots += LbpSerializer.StringElement("lbp2UsedSlots", this.GetUsedSlotsForGame(GameVersion.LittleBigPlanetVita));
             slotTypesLocal = new[]

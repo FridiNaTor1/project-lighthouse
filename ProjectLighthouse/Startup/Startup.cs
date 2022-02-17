@@ -96,8 +96,8 @@ public class Startup
     public virtual void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
         bool computeDigests = true;
-        string serverDigestKey = ServerSettings.Instance.ServerDigestKey;
-        if (string.IsNullOrEmpty(serverDigestKey))
+
+        if (string.IsNullOrEmpty(ServerSettings.Instance.ServerDigestKey))
         {
             Logger.Log
             (
@@ -169,18 +169,39 @@ public class Startup
                 string digestPath = context.Request.Path;
                 Stream body = context.Request.Body;
 
+                bool usedAlternateDigestKey = false;
+
                 if (computeDigests && digestPath.StartsWith("/LITTLEBIGPLANETPS3_XML"))
                 {
-                    string clientRequestDigest = await HashHelper.ComputeDigest(digestPath, authCookie, body, serverDigestKey);
+                    string clientRequestDigest = await HashHelper.ComputeDigest(digestPath, authCookie, body, ServerSettings.Instance.ServerDigestKey);
 
                     // Check the digest we've just calculated against the X-Digest-A header if the game set the header. They should match.
                     if (context.Request.Headers.TryGetValue("X-Digest-A", out StringValues sentDigest))
+                    {
                         if (clientRequestDigest != sentDigest)
                         {
-                            context.Response.StatusCode = 403;
-                            context.Abort();
-                            return;
+                            // If we got here, the normal ServerDigestKey failed to validate. Lets try again with the alternate digest key.
+                            usedAlternateDigestKey = true;
+
+                            // Reset the body stream
+                            body.Position = 0;
+
+                            clientRequestDigest = await HashHelper.ComputeDigest(digestPath, authCookie, body, ServerSettings.Instance.AlternateDigestKey);
+                            if (clientRequestDigest != sentDigest)
+                            {
+                                #if DEBUG
+                                Console.WriteLine("Digest failed");
+                                Console.WriteLine("digestKey: " + ServerSettings.Instance.ServerDigestKey);
+                                Console.WriteLine("altDigestKey: " + ServerSettings.Instance.AlternateDigestKey);
+                                Console.WriteLine("computed digest: " + clientRequestDigest);
+                                #endif
+                                // We still failed to validate. Abort the request.
+                                context.Response.StatusCode = 403;
+                                context.Abort();
+                                return;
+                            }
                         }
+                    }
 
                     context.Response.Headers.Add("X-Digest-B", clientRequestDigest);
                     context.Request.Body.Position = 0;
@@ -198,8 +219,10 @@ public class Startup
                 {
                     responseBuffer.Position = 0;
 
+                    string digestKey = usedAlternateDigestKey ? ServerSettings.Instance.AlternateDigestKey : ServerSettings.Instance.ServerDigestKey;
+
                     // Compute the digest for the response.
-                    string serverDigest = await HashHelper.ComputeDigest(context.Request.Path, authCookie, responseBuffer, serverDigestKey);
+                    string serverDigest = await HashHelper.ComputeDigest(context.Request.Path, authCookie, responseBuffer, digestKey);
                     context.Response.Headers.Add("X-Digest-A", serverDigest);
                 }
 
@@ -227,7 +250,8 @@ public class Startup
 
                     if (gameToken != null && gameToken.GameVersion == GameVersion.LittleBigPlanet1)
                         // Ignore UserFromGameToken null because user must exist for a token to exist
-                        await LastContactHelper.SetLastContact((await database.UserFromGameToken(gameToken))!, GameVersion.LittleBigPlanet1);
+                        await LastContactHelper.SetLastContact
+                            ((await database.UserFromGameToken(gameToken))!, GameVersion.LittleBigPlanet1, gameToken.Platform);
                 }
                 #nullable disable
 

@@ -24,6 +24,18 @@ public class SlotsController : ControllerBase
         this.database = database;
     }
 
+    private IQueryable<Slot> getSlots(GameVersion gameVersion)
+    {
+        IQueryable<Slot> query = this.database.Slots.Include(s => s.Creator).Include(s => s.Location);
+
+        if (gameVersion == GameVersion.LittleBigPlanetVita || gameVersion == GameVersion.LittleBigPlanetPSP || gameVersion == GameVersion.Unknown)
+        {
+            return query.Where(s => s.GameVersion == gameVersion && !s.SubLevel);
+        }
+
+        return query.Where(s => s.GameVersion <= gameVersion && !s.SubLevel);
+    }
+
     [HttpGet("slots/by")]
     public async Task<IActionResult> SlotsBy([FromQuery] string u, [FromQuery] int pageStart, [FromQuery] int pageSize)
     {
@@ -37,14 +49,13 @@ public class SlotsController : ControllerBase
 
         string response = Enumerable.Aggregate
         (
-            this.database.Slots.Where(s => s.GameVersion <= gameVersion)
-                .Include(s => s.Creator)
-                .Include(s => s.Location)
+            this.getSlots
+                    (gameVersion)
                 .Where(s => s.Creator!.Username == user.Username)
                 .Skip(pageStart - 1)
                 .Take(Math.Min(pageSize, ServerSettings.Instance.EntitledSlots)),
             string.Empty,
-            (current, slot) => current + slot.Serialize()
+            (current, slot) => current + slot.Serialize(token.GameVersion)
         );
 
         return this.Ok
@@ -77,16 +88,13 @@ public class SlotsController : ControllerBase
 
         GameVersion gameVersion = token.GameVersion;
 
-        Slot? slot = await this.database.Slots.Where(s => s.GameVersion <= gameVersion)
-            .Include(s => s.Creator)
-            .Include(s => s.Location)
-            .FirstOrDefaultAsync(s => s.SlotId == id);
+        Slot? slot = await this.getSlots(gameVersion).FirstOrDefaultAsync(s => s.SlotId == id);
 
         if (slot == null) return this.NotFound();
 
         RatedLevel? ratedLevel = await this.database.RatedLevels.FirstOrDefaultAsync(r => r.SlotId == id && r.UserId == user.UserId);
         VisitedLevel? visitedLevel = await this.database.VisitedLevels.FirstOrDefaultAsync(r => r.SlotId == id && r.UserId == user.UserId);
-        return this.Ok(slot.Serialize(ratedLevel, visitedLevel));
+        return this.Ok(slot.Serialize(gameVersion, ratedLevel, visitedLevel));
     }
 
     [HttpGet("slots/cool")]
@@ -121,13 +129,9 @@ public class SlotsController : ControllerBase
 
         GameVersion gameVersion = token.GameVersion;
 
-        IQueryable<Slot> slots = this.database.Slots.Where(s => s.GameVersion <= gameVersion)
-            .Include(s => s.Creator)
-            .Include(s => s.Location)
-            .OrderByDescending(s => s.FirstUploaded)
-            .Skip(pageStart - 1)
-            .Take(Math.Min(pageSize, 30));
-        string response = Enumerable.Aggregate(slots, string.Empty, (current, slot) => current + slot.Serialize());
+        IQueryable<Slot> slots = this.getSlots(gameVersion).OrderByDescending(s => s.FirstUploaded).Skip(pageStart - 1).Take(Math.Min(pageSize, 30));
+
+        string response = Enumerable.Aggregate(slots, string.Empty, (current, slot) => current + slot.Serialize(gameVersion));
 
         return this.Ok
         (
@@ -156,14 +160,12 @@ public class SlotsController : ControllerBase
 
         GameVersion gameVersion = token.GameVersion;
 
-        IQueryable<Slot> slots = this.database.Slots.Where(s => s.GameVersion <= gameVersion)
+        IQueryable<Slot> slots = this.getSlots(gameVersion)
             .Where(s => s.TeamPick)
-            .Include(s => s.Creator)
-            .Include(s => s.Location)
             .OrderByDescending(s => s.LastUpdated)
             .Skip(pageStart - 1)
             .Take(Math.Min(pageSize, 30));
-        string response = Enumerable.Aggregate(slots, string.Empty, (current, slot) => current + slot.Serialize());
+        string response = Enumerable.Aggregate(slots, string.Empty, (current, slot) => current + slot.Serialize(gameVersion));
 
         return this.Ok
         (
@@ -192,13 +194,9 @@ public class SlotsController : ControllerBase
 
         GameVersion gameVersion = token.GameVersion;
 
-        IEnumerable<Slot> slots = this.database.Slots.Where(s => s.GameVersion <= gameVersion)
-            .Include(s => s.Creator)
-            .Include(s => s.Location)
-            .OrderBy(_ => EF.Functions.Random())
-            .Take(Math.Min(pageSize, 30));
+        IEnumerable<Slot> slots = this.getSlots(gameVersion).OrderBy(_ => EF.Functions.Random()).Take(Math.Min(pageSize, 30));
 
-        string response = slots.Aggregate(string.Empty, (current, slot) => current + slot.Serialize());
+        string response = slots.Aggregate(string.Empty, (current, slot) => current + slot.Serialize(gameVersion));
 
         return this.Ok
         (
@@ -242,7 +240,7 @@ public class SlotsController : ControllerBase
             .Skip(pageStart - 1)
             .Take(Math.Min(pageSize, 30));
 
-        string response = slots.Aggregate(string.Empty, (current, slot) => current + slot.Serialize());
+        string response = slots.Aggregate(string.Empty, (current, slot) => current + slot.Serialize(token.GameVersion));
 
         return this.Ok
         (
@@ -300,7 +298,7 @@ public class SlotsController : ControllerBase
             .Skip(pageStart - 1)
             .Take(Math.Min(pageSize, 30));
 
-        string response = slots.Aggregate(string.Empty, (current, slot) => current + slot.Serialize());
+        string response = slots.Aggregate(string.Empty, (current, slot) => current + slot.Serialize(token.GameVersion));
 
         return this.Ok
         (
@@ -344,7 +342,7 @@ public class SlotsController : ControllerBase
             .Skip(pageStart - 1)
             .Take(Math.Min(pageSize, 30));
 
-        string response = slots.Aggregate(string.Empty, (current, slot) => current + slot.Serialize());
+        string response = slots.Aggregate(string.Empty, (current, slot) => current + slot.Serialize(token.GameVersion));
 
         return this.Ok
         (
@@ -383,6 +381,11 @@ public class SlotsController : ControllerBase
 
     private IQueryable<Slot> filterByRequest(string? gameFilterType, string? dateFilterType, GameVersion version)
     {
+        if (version == GameVersion.LittleBigPlanetVita || version == GameVersion.LittleBigPlanetPSP || version == GameVersion.Unknown)
+        {
+            return this.getSlots(version);
+        }
+
         string _dateFilterType = dateFilterType ?? "";
 
         long oldestTime = _dateFilterType switch

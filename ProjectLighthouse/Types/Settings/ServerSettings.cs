@@ -12,7 +12,7 @@ namespace LBPUnion.ProjectLighthouse.Types.Settings;
 [Serializable]
 public class ServerSettings
 {
-    public const int CurrentConfigVersion = 21; // MUST BE INCREMENTED FOR EVERY CONFIG CHANGE!
+    public const int CurrentConfigVersion = 22; // MUST BE INCREMENTED FOR EVERY CONFIG CHANGE!
     private static FileSystemWatcher fileWatcher;
     static ServerSettings()
     {
@@ -113,7 +113,8 @@ public class ServerSettings
     public string DbConnectionString { get; set; } = "server=127.0.0.1;uid=root;pwd=lighthouse;database=lighthouse";
 
     public string ExternalUrl { get; set; } = "http://localhost:10060";
-    public string ServerDigestKey { get; set; }
+    public string ServerDigestKey { get; set; } = "";
+    public string AlternateDigestKey { get; set; } = "";
     public bool UseExternalAuth { get; set; }
 
     public bool CheckForUnsafeFiles { get; set; } = true;
