@@ -1,3 +1,5 @@
+#Some assets are owned by SIE
+
 # This is my fork of Project Lighthouse
 I made a few minor changes to the website to include the link to this fork, aswell as credits of the Project Lighthouse Team. and mention of Admins of this instance, so you can have an account made for you, which is needed to connect to the server, 403 error is normal first time, check the authentication page on the website http://fridinator.fo:10060 if your Public IP is shown as an authentication attempt, whitelist it by accepting the request, then restart your game, and it should connect correctly.
 
