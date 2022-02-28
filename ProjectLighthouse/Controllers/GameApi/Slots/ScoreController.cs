@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using LBPUnion.ProjectLighthouse.Helpers;
 using LBPUnion.ProjectLighthouse.Serialization;
 using LBPUnion.ProjectLighthouse.Types;
 using LBPUnion.ProjectLighthouse.Types.Levels;
@@ -25,8 +26,8 @@ public class ScoreController : ControllerBase
         this.database = database;
     }
 
-    [HttpPost("scoreboard/user/{id:int}")]
-    public async Task<IActionResult> SubmitScore(int id, [FromQuery] bool lbp1 = false, [FromQuery] bool lbp2 = false, [FromQuery] bool lbp3 = false)
+    [HttpPost("scoreboard/{levelType}/{id:int}")]
+    public async Task<IActionResult> SubmitScore(string levelType, int id)
     {
         (User, GameToken)? userAndToken = await this.database.UserAndGameTokenFromRequest(this.Request);
 
@@ -43,35 +44,42 @@ public class ScoreController : ControllerBase
         Score? score = (Score?)serializer.Deserialize(new StringReader(bodyString));
         if (score == null) return this.BadRequest();
 
+        SlotType slotType = SlotTypeHelper.ParseSlotType(levelType);
+
+        if (slotType == SlotType.Unknown) return this.BadRequest();
+
         score.SlotId = id;
 
-        Slot? slot = this.database.Slots.FirstOrDefault(s => s.SlotId == score.SlotId);
-        if (slot == null) return this.BadRequest();
-
-        switch (gameToken.GameVersion)
+        if (slotType == SlotType.User)
         {
-            case GameVersion.LittleBigPlanet1:
-                slot.PlaysLBP1Complete++;
-                break;
-            case GameVersion.LittleBigPlanet2:
-                slot.PlaysLBP2Complete++;
-                break;
-            case GameVersion.LittleBigPlanet3:
-                slot.PlaysLBP3Complete++;
-                break;
-            case GameVersion.LittleBigPlanetVita:
-                slot.PlaysLBPVitaComplete++;
-                break;
+            Slot? slot = this.database.Slots.FirstOrDefault(s => s.SlotId == score.SlotId);
+            if (slot == null) return this.BadRequest();
+            switch (gameToken.GameVersion)
+            {
+                case GameVersion.LittleBigPlanet1:
+                    slot.PlaysLBP1Complete++;
+                    break;
+                case GameVersion.LittleBigPlanet2:
+                    slot.PlaysLBP2Complete++;
+                    break;
+                case GameVersion.LittleBigPlanet3:
+                    slot.PlaysLBP3Complete++;
+                    break;
+                case GameVersion.LittleBigPlanetVita:
+                    slot.PlaysLBPVitaComplete++;
+                    break;
+            }
         }
 
-        IQueryable<Score> existingScore = this.database.Scores.Where(s => s.SlotId == score.SlotId)
+        IQueryable<Score> existingScore = this.database.Scores.Where(s => s.SlotId == score.SlotId && s.SlotType == slotType)
             .Where(s => s.PlayerIdCollection == score.PlayerIdCollection)
             .Where(s => s.Type == score.Type);
 
         if (existingScore.Any())
         {
-            Score first = existingScore.First(s => s.SlotId == score.SlotId);
+            Score first = existingScore.First(s => s.SlotId == score.SlotId && s.SlotType == slotType);
             score.ScoreId = first.ScoreId;
+            score.SlotType = slotType;
             score.Points = Math.Max(first.Points, score.Points);
             this.database.Entry(first).CurrentValues.SetValues(score);
         }
@@ -82,34 +90,37 @@ public class ScoreController : ControllerBase
 
         await this.database.SaveChangesAsync();
 
-        string myRanking = this.getScores(score.SlotId, score.Type, user, -1, 5, "scoreboardSegment");
+        string myRanking = this.getScores(score.SlotId, slotType, score.Type, user, -1, 5, "scoreboardSegment");
 
         return this.Ok(myRanking);
     }
 
-    [HttpGet("friendscores/user/{slotId:int}/{type:int}")]
-    public IActionResult FriendScores(int slotId, int type)
+    [HttpGet("friendscores/{levelType}/{slotId:int}/{type:int}")]
+    public IActionResult FriendScores(string levelType, int slotId, int type)
         //=> await TopScores(slotId, type);
         => this.Ok(LbpSerializer.BlankElement("scores"));
 
-    [HttpGet("topscores/user/{slotId:int}/{type:int}")]
+    [HttpGet("topscores/{levelType}/{slotId:int}/{type:int}")]
     [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
-    public async Task<IActionResult> TopScores(int slotId, int type, [FromQuery] int pageStart = -1, [FromQuery] int pageSize = 5)
+    public async Task<IActionResult> TopScores(string levelType, int slotId, int type, [FromQuery] int pageStart = -1, [FromQuery] int pageSize = 5)
     {
         // Get username
         User? user = await this.database.UserFromGameRequest(this.Request);
 
         if (user == null) return this.StatusCode(403, "");
 
-        return this.Ok(this.getScores(slotId, type, user, pageStart, pageSize));
+        SlotType slotType = SlotTypeHelper.ParseSlotType(levelType);
+        if (slotType == SlotType.Unknown) return this.BadRequest();
+
+        return this.Ok(this.getScores(slotId, slotType, type, user, pageStart, pageSize));
     }
 
     [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
-    private string getScores(int slotId, int type, User user, int pageStart = -1, int pageSize = 5, string rootName = "scores")
+    private string getScores(int slotId, SlotType slotType, int type, User user, int pageStart = -1, int pageSize = 5, string rootName = "scores")
     {
         // This is hella ugly but it technically assigns the proper rank to a score
         // var needed for Anonymous type returned from SELECT
-        var rankedScores = this.database.Scores.Where(s => s.SlotId == slotId && s.Type == type)
+        var rankedScores = this.database.Scores.Where(s => s.SlotId == slotId && s.SlotType == slotType && s.Type == type)
             .OrderByDescending(s => s.Points)
             .ToList()
             .Select
