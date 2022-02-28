@@ -81,14 +81,14 @@
         <div class="ui attached menu">
             <div class="ui container">
                 @{
-                    string mobileIconStyle = Model.IsMobile ? "margin-right: -15%;" : "";
+                    string mobileIconStyle = Model.IsMobile ? "margin-right: 0;" : "";
                 }
                 @foreach (PageNavigationItem navigationItem in Model!.NavigationItems)
                 {
                     <a class="item" href="@navigationItem.Url">
                         @if (navigationItem.Icon != null)
                         {
-                            <i class="@navigationItem.Icon icon" style="@mobileIconStyle"></i>
+                            <i class="@navigationItem.Icon icon" style="padding: 0.9285714299999981em -1.8571428599999997em; @mobileIconStyle"></i>
                         }
 
                         @if (!Model.IsMobile)
