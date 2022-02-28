@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LBPUnion.ProjectLighthouse.Pages
 {
-    public class rules : BaseLayout
+    public class Donation : BaseLayout
     {
-            public rules(Database database) : base(database)
+            public Donation(Database database) : base(database)
         {}
     }
 }

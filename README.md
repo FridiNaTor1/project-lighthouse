@@ -1,5 +1,15 @@
 #Some assets are owned by SIE
 
+#Donation
+Server is expensive for me to keep up, so if you want to, you can donate for server upkeep. If donations are high enough, I could even upgrade the server in the future
+Current price of the server monthly is $104.89 USD you can support the server in two ways.
+
+1. MCProhosting. My server is running through MCProhosting dedicated Linux computers. If you already are looking into getting a server of your own, like a Minecraft server. Then it would help a lot if you do so after using my affiliate link, it doesn't cost you extra, but it will act as a discount for my server. https://mcprohosting.com/order?aff=418
+
+2. PayPal. You can also directly use PayPal to donate, you can find me via @FridiNaTor or this link https://paypal.me/FridiNaTor?country.x=DK&locale.x=en_US
+
+Remember that this is just OPTIONAL no requirement to play!
+
 # This is my fork of Project Lighthouse
 I made a few minor changes to the website to include the link to this fork, aswell as credits of the Project Lighthouse Team. and mention of Admins of this instance, so you can have an account made for you, which is needed to connect to the server, 403 error is normal first time, check the authentication page on the website http://fridinator.fo:10060 if your Public IP is shown as an authentication attempt, whitelist it by accepting the request, then restart your game, and it should connect correctly.
 

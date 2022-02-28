@@ -17,6 +17,7 @@ public class BaseLayout : PageModel
         new PageNavigationItem("Photos", "/photos/0", "camera"),
         new PageNavigationItem("Levels", "/slots/0", "certificate"),
         new PageNavigationItem("Rules", "/rules", "info"),
+		new PageNavigationItem("Donation", "/donate", "dollar"),
     };
 
     public readonly List<PageNavigationItem> NavigationItemsRight = new();
