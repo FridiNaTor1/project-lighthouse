@@ -48,7 +48,7 @@ public class SlotPageController : ControllerBase
             return this.Redirect("~/slot/" + id);
         }
 
-        await this.database.PostComment(user, id, CommentType.Level, msg);
+        await this.database.PostComment(user, id, CommentType.Level, SlotType.User, msg);
         Logger.Log($"Posted comment from {user.UserId}: \"{msg}\" on user {id}", LoggerLevelComments.Instance);
 
         return this.Redirect("~/slot/" + id);

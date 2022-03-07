@@ -165,7 +165,7 @@ public class Database : DbContext
         return true;
     }
 
-    public async Task<bool> PostComment(User user, int targetId, CommentType type, string message)
+    public async Task<bool> PostComment(User user, int targetId, CommentType type, SlotType slotType, string message)
     {
         if (message.Length > 100) return false;
 
@@ -176,7 +176,8 @@ public class Database : DbContext
         }
         else
         {
-            Slot? targetSlot = await this.Slots.FirstOrDefaultAsync(u => u.SlotId == targetId);
+
+            Slot? targetSlot = await this.Slots.FirstOrDefaultAsync(u => u.SlotId == targetId && u.SlotType == slotType);
             if (targetSlot == null) return false;
         }
 
@@ -188,6 +189,7 @@ public class Database : DbContext
                 TargetId = targetId,
                 Type = type,
                 Message = message,
+                SlotType = slotType,
                 Timestamp = TimeHelper.UnixTimeMilliseconds(),
             }
         );

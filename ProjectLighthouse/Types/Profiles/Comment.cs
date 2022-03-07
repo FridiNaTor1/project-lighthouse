@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Xml.Serialization;
 using LBPUnion.ProjectLighthouse.Serialization;
+using LBPUnion.ProjectLighthouse.Types.Levels;
 
 namespace LBPUnion.ProjectLighthouse.Types.Profiles;
 
@@ -33,6 +34,8 @@ public class Comment
     public string Message { get; set; }
 
     public CommentType Type { get; set; }
+
+    public SlotType SlotType { get; set; }
 
     public int ThumbsUp { get; set; }
     public int ThumbsDown { get; set; }
@@ -69,9 +72,12 @@ public class Comment
            LbpSerializer.StringElement("npHandle", this.Poster.Username) +
            LbpSerializer.StringElement("timestamp", this.Timestamp) +
            LbpSerializer.StringElement("message", this.Message) +
-           (this.Deleted ? LbpSerializer.StringElement("deleted", true) +
-             LbpSerializer.StringElement("deletedBy", this.DeletedBy) +
-             LbpSerializer.StringElement("deletedType", this.DeletedBy) : "") +
+           (this.Deleted
+               ? LbpSerializer.StringElement
+                     ("deleted", true) +
+                 LbpSerializer.StringElement("deletedBy", this.DeletedBy) +
+                 LbpSerializer.StringElement("deletedType", this.DeletedBy)
+               : "") +
            LbpSerializer.StringElement("thumbsup", this.ThumbsUp) +
            LbpSerializer.StringElement("thumbsdown", this.ThumbsDown);
 
