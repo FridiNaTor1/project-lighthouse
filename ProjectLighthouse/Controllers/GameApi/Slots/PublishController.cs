@@ -187,8 +187,7 @@ public class PublishController : ControllerBase
 
         if (slot.CreatorId != user.UserId) return this.StatusCode(403, "");
 
-        this.database.Locations.Remove(slot.Location);
-        this.database.Slots.Remove(slot);
+        await this.database.RemoveSlot(slot);
 
         await this.database.SaveChangesAsync();
 

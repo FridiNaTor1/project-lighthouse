@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using LBPUnion.ProjectLighthouse.Helpers;
 using LBPUnion.ProjectLighthouse.Serialization;
 using LBPUnion.ProjectLighthouse.Types;
 using LBPUnion.ProjectLighthouse.Types.Levels;
@@ -40,6 +41,7 @@ public class ListController : ControllerBase
             .Include(q => q.Slot.Creator)
             .Where(q => q.Slot.GameVersion <= gameVersion)
             .Where(q => q.User.Username == username)
+            .OrderByDescending(q => q.Timestamp)
             .Skip(pageStart - 1)
             .Take(Math.Min(pageSize, 30))
             .AsEnumerable();
@@ -106,15 +108,16 @@ public class ListController : ControllerBase
 
         GameVersion gameVersion = token.GameVersion;
 
-        IEnumerable<HeartedLevel> heartedLevels = this.database.HeartedLevels.Include(q => q.User)
-            .Include(q => q.Slot)
-            .Include(q => q.Slot.Location)
-            .Include(q => q.Slot.Creator)
-            .Where(q => q.Slot.GameVersion <= gameVersion)
+        // don't include story levels in the 1 slot preview because otherwise invalid story levels could cause the slot to not display
+        bool isProfilePreview = pageSize == 1 && pageStart == 1;
+
+        List<HeartedLevel> heartedLevels = await this.database.HeartedLevels.Include(q => q.User)
             .Where(q => q.User.Username == username)
+            .Where(q => !isProfilePreview || q.SlotType == SlotType.User)
+            .OrderByDescending(q => q.Timestamp)
             .Skip(pageStart - 1)
             .Take(Math.Min(pageSize, 30))
-            .AsEnumerable();
+            .ToListAsync();
 
         string response = heartedLevels.Aggregate(string.Empty, (current, q) => current + q.Slot.Serialize(gameVersion));
 
@@ -125,11 +128,14 @@ public class ListController : ControllerBase
         );
     }
 
-    [HttpPost("favourite/slot/user/{id:int}")]
-    public async Task<IActionResult> AddFavouriteSlot(int id)
+    [HttpPost("favourite/slot/{levelType}/{id:int}")]
+    public async Task<IActionResult> AddFavouriteSlot(int id, [FromRoute] string? levelType)
     {
         User? user = await this.database.UserFromGameRequest(this.Request);
         if (user == null) return this.StatusCode(403, "");
+
+        SlotType slotType = SlotTypeHelper.ParseSlotType(levelType);
+        if (slotType == SlotType.Unknown) return this.BadRequest();
 
         Slot? slot = await this.database.Slots.FirstOrDefaultAsync(s => s.SlotId == id);
         if (slot == null) return this.NotFound();
@@ -139,11 +145,14 @@ public class ListController : ControllerBase
         return this.Ok();
     }
 
-    [HttpPost("unfavourite/slot/user/{id:int}")]
-    public async Task<IActionResult> RemoveFavouriteSlot(int id)
+    [HttpPost("unfavourite/slot/{levelType}/{id:int}")]
+    public async Task<IActionResult> RemoveFavouriteSlot(int id, [FromRoute] string? levelType)
     {
         User? user = await this.database.UserFromGameRequest(this.Request);
         if (user == null) return this.StatusCode(403, "");
+
+        SlotType slotType = SlotTypeHelper.ParseSlotType(levelType);
+        if (slotType == SlotType.Unknown) return this.BadRequest();
 
         Slot? slot = await this.database.Slots.FirstOrDefaultAsync(s => s.SlotId == id);
         if (slot == null) return this.NotFound();

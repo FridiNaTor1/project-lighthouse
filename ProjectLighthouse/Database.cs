@@ -388,9 +388,24 @@ public class Database : DbContext
         await this.SaveChangesAsync();
     }
 
-    public async Task RemoveSlot(Slot slot, bool saveChanges = true)
+    public async Task RemoveSlot(Slot slot, bool saveChanges = true, bool deleteNonUserSlots = false)
     {
+        if (!deleteNonUserSlots && slot.SlotType != SlotType.User) return;
+
         if (slot.Location != null) this.Locations.Remove(slot.Location);
+
+        this.Scores.RemoveRange(this.Scores.Where(s => s.SlotId == slot.SlotId));
+        this.Comments.RemoveRange(this.Comments.Where(c => c.TargetId == slot.SlotId && c.Type == CommentType.Level));
+        this.HeartedLevels.RemoveRange(this.HeartedLevels.Where(s => s.SlotId == slot.SlotId));
+        this.QueuedLevels.RemoveRange(this.QueuedLevels.Where(s => s.SlotId == slot.SlotId));
+
+        IEnumerable<Photo> photos = this.Photos.Where(p => p.SlotId == slot.SlotId && p.SlotType == SlotType.User).AsEnumerable();
+        foreach (Photo p in photos)
+        {
+            p.SlotId = 0;
+        }
+
+        // Must be the last call.
         this.Slots.Remove(slot);
 
         if (saveChanges) await this.SaveChangesAsync();
