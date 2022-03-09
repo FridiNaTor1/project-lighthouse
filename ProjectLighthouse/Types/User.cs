@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json.Serialization;
-using LBPUnion.ProjectLighthouse.Helpers;
 using LBPUnion.ProjectLighthouse.Serialization;
 using LBPUnion.ProjectLighthouse.Types.Profiles;
 using LBPUnion.ProjectLighthouse.Types.Settings;
@@ -11,9 +10,30 @@ namespace LBPUnion.ProjectLighthouse.Types;
 
 public class User
 {
-    public readonly ClientsConnected ClientsConnected = new();
+    [NotMapped]
+    [JsonIgnore]
+    private Database? _database;
+
+    [NotMapped]
+    [JsonIgnore]
+    private Database database {
+        get {
+            if (this._database != null) return this._database;
+
+            return this._database = new Database();
+        }
+        set => this._database = value;
+    }
+
     public int UserId { get; set; }
     public string Username { get; set; }
+
+    #nullable enable
+    [JsonIgnore]
+    public string? EmailAddress { get; set; } = null;
+    #nullable disable
+
+    public bool EmailAddressVerified { get; set; } = false;
 
     [JsonIgnore]
     public string Password { get; set; }
@@ -49,39 +69,19 @@ public class User
 
     [NotMapped]
     [JsonIgnore]
-    public int Reviews {
-        get {
-            using Database database = new();
-            return database.Reviews.Count(r => r.ReviewerId == this.UserId);
-        }
-    }
+    public int Reviews => database.Reviews.Count(r => r.ReviewerId == this.UserId);
 
     [NotMapped]
     [JsonIgnore]
-    public int Comments {
-        get {
-            using Database database = new();
-            return database.Comments.Count(c => c.Type == CommentType.Profile && c.TargetId == this.UserId);
-        }
-    }
+    public int Comments => database.Comments.Count(c => c.Type == CommentType.Profile && c.TargetId == this.UserId);
 
     [NotMapped]
     [JsonIgnore]
-    public int PhotosByMe {
-        get {
-            using Database database = new();
-            return database.Photos.Count(p => p.CreatorId == this.UserId);
-        }
-    }
+    public int PhotosByMe => database.Photos.Count(p => p.CreatorId == this.UserId);
 
     [NotMapped]
     [JsonIgnore]
-    public int PhotosWithMe {
-        get {
-            using Database database = new();
-            return Enumerable.Sum(database.Photos, photo => photo.Subjects.Count(subject => subject.User.UserId == this.UserId));
-        }
-    }
+    public int PhotosWithMe => Enumerable.Sum(database.Photos, photo => photo.Subjects.Count(subject => subject.User.UserId == this.UserId));
 
     [JsonIgnore]
     public int LocationId { get; set; }
@@ -95,45 +95,30 @@ public class User
 
     [NotMapped]
     [JsonIgnore]
-    public int HeartedLevels {
-        get {
-            using Database database = new();
-            return database.HeartedLevels.Count(p => p.UserId == this.UserId);
-        }
-    }
+    public int HeartedLevels => database.HeartedLevels.Count(p => p.UserId == this.UserId);
 
     [NotMapped]
     [JsonIgnore]
-    public int HeartedUsers {
-        get {
-            using Database database = new();
-            return database.HeartedProfiles.Count(p => p.UserId == this.UserId);
-        }
-    }
+    public int HeartedUsers => database.HeartedProfiles.Count(p => p.UserId == this.UserId);
 
     [NotMapped]
     [JsonIgnore]
-    public int QueuedLevels {
-        get {
-            using Database database = new();
-            return database.QueuedLevels.Count(p => p.UserId == this.UserId);
-        }
-    }
+    public int QueuedLevels => database.QueuedLevels.Count(p => p.UserId == this.UserId);
 
     [JsonIgnore]
     public string Pins { get; set; } = "";
 
     [JsonIgnore]
-    public string PlanetHash { get; set; } = "";
+    public string PlanetHashLBP2 { get; set; } = "";
 
     [JsonIgnore]
-    public int Hearts {
-        get {
-            using Database database = new();
+    public string PlanetHashLBP3 { get; set; } = "";
 
-            return database.HeartedProfiles.Count(s => s.HeartedUserId == this.UserId);
-        }
-    }
+    [JsonIgnore]
+    public string PlanetHashLBPVita { get; set; } = "";
+
+    [JsonIgnore]
+    public int Hearts => database.HeartedProfiles.Count(s => s.HeartedUserId == this.UserId);
 
     [JsonIgnore]
     public bool IsAdmin { get; set; } = false;
@@ -145,22 +130,9 @@ public class User
     public string BooHash { get; set; } = "";
     public string MehHash { get; set; } = "";
 
-    #nullable enable
     [NotMapped]
     [JsonIgnore]
-    public string Status {
-        get {
-            using Database database = new();
-            LastContact? lastMatch = database.LastContacts.Where
-                    (l => l.UserId == this.UserId)
-                .FirstOrDefault(l => TimestampHelper.Timestamp - l.Timestamp < 300);
-
-            if (lastMatch == null) return "Offline";
-
-            return "Currently online on " + lastMatch.GameVersion.ToPrettyString();
-        }
-    }
-    #nullable disable
+    public UserStatus Status => new(database, this.UserId);
 
     [JsonIgnore]
     public bool Banned { get; set; }
@@ -171,8 +143,8 @@ public class User
     public string Serialize(GameVersion gameVersion = GameVersion.LittleBigPlanet1)
     {
         string user = LbpSerializer.TaggedStringElement("npHandle", this.Username, "icon", this.IconHash) +
-                      LbpSerializer.StringElement("game", this.Game) +
-                      this.SerializeSlots(gameVersion == GameVersion.LittleBigPlanetVita) +
+                      LbpSerializer.StringElement("game", (int)gameVersion) +
+                      this.serializeSlots(gameVersion) +
                       LbpSerializer.StringElement("lists", this.Lists) +
                       LbpSerializer.StringElement("lists_quota", ServerSettings.Instance.ListsQuota) + // technically not a part of the user but LBP expects it
                       LbpSerializer.StringElement("biography", this.Biography) +
@@ -186,15 +158,29 @@ public class User
                       LbpSerializer.StringElement("favouriteUserCount", this.HeartedUsers) +
                       LbpSerializer.StringElement("lolcatftwCount", this.QueuedLevels) +
                       LbpSerializer.StringElement("pins", this.Pins) +
-                      LbpSerializer.StringElement("planets", this.PlanetHash) +
+                      serializeEarth(gameVersion) +
                       LbpSerializer.BlankElement("photos") +
                       LbpSerializer.StringElement("heartCount", this.Hearts) +
                       LbpSerializer.StringElement("yay2", this.YayHash) +
                       LbpSerializer.StringElement("boo2", this.BooHash) +
                       LbpSerializer.StringElement("meh2", this.MehHash);
-        this.ClientsConnected.Serialize();
 
         return LbpSerializer.TaggedStringElement("user", user, "type", "user");
+    }
+
+    private string serializeEarth(GameVersion gameVersion)
+    {
+        return LbpSerializer.StringElement
+        (
+            "planets",
+            gameVersion switch
+            {
+                GameVersion.LittleBigPlanet2 => this.PlanetHashLBP2,
+                GameVersion.LittleBigPlanet3 => this.PlanetHashLBP3,
+                GameVersion.LittleBigPlanetVita => this.PlanetHashLBPVita,
+                _ => "", // other versions do not have custom planets
+            }
+        );
     }
 
     #region Slots
@@ -204,18 +190,14 @@ public class User
     /// </summary>
     [NotMapped]
     [JsonIgnore]
-    public int UsedSlots {
-        get {
-            using Database database = new();
-            return database.Slots.Count(s => s.CreatorId == this.UserId);
-        }
-    }
+    public int UsedSlots => database.Slots.Count(s => s.CreatorId == this.UserId);
 
+    #nullable enable
     public int GetUsedSlotsForGame(GameVersion version)
     {
-        using Database database = new();
         return database.Slots.Count(s => s.CreatorId == this.UserId && s.GameVersion == version);
     }
+    #nullable disable
 
     /// <summary>
     ///     The number of slots remaining on the earth
@@ -225,17 +207,16 @@ public class User
 
     private static readonly string[] slotTypes =
     {
-//            "lbp1",
         "lbp2", "lbp3", "crossControl",
     };
 
-    private string SerializeSlots(bool isVita = false)
+    private string serializeSlots(GameVersion gameVersion)
     {
         string slots = string.Empty;
 
         string[] slotTypesLocal;
 
-        if (isVita)
+        if (gameVersion == GameVersion.LittleBigPlanetVita)
         {
             slots += LbpSerializer.StringElement("lbp2UsedSlots", this.GetUsedSlotsForGame(GameVersion.LittleBigPlanetVita));
             slotTypesLocal = new[]

@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using LBPUnion.ProjectLighthouse.Helpers;
 using LBPUnion.ProjectLighthouse.Types;
 using LBPUnion.ProjectLighthouse.Types.Categories;
 using LBPUnion.ProjectLighthouse.Types.Levels;
 using LBPUnion.ProjectLighthouse.Types.Profiles;
+using LBPUnion.ProjectLighthouse.Types.Profiles.Email;
 using LBPUnion.ProjectLighthouse.Types.Reports;
 using LBPUnion.ProjectLighthouse.Types.Reviews;
 using LBPUnion.ProjectLighthouse.Types.Settings;
@@ -40,16 +42,29 @@ public class Database : DbContext
     public DbSet<DatabaseCategory> CustomCategories { get; set; }
     public DbSet<Reaction> Reactions { get; set; }
     public DbSet<GriefReport> Reports { get; set; }
+    public DbSet<EmailVerificationToken> EmailVerificationTokens { get; set; }
+    public DbSet<EmailSetToken> EmailSetTokens { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)
         => options.UseMySql(ServerSettings.Instance.DbConnectionString, MySqlServerVersion.LatestSupportedServerVersion);
 
-    public async Task<User> CreateUser(string username, string password)
+    #nullable enable
+    public async Task<User> CreateUser(string username, string password, string? emailAddress = null)
     {
-        if (!password.StartsWith("$")) throw new ArgumentException(nameof(password) + " is not a BCrypt hash");
+        if (!password.StartsWith('$')) throw new ArgumentException(nameof(password) + " is not a BCrypt hash");
 
-        User user;
-        if ((user = await this.Users.Where(u => u.Username == username).FirstOrDefaultAsync()) != null) return user;
+        // 16 is PSN max, 3 is PSN minimum
+        if (!ServerStatics.IsUnitTesting || !username.StartsWith("unitTestUser"))
+        {
+            if (username.Length > 16 || username.Length < 3) throw new ArgumentException(nameof(username) + " is either too long or too short");
+
+            Regex regex = new("^[a-zA-Z0-9_.-]*$");
+
+            if (!regex.IsMatch(username)) throw new ArgumentException(nameof(username) + " does not match the username regex");
+        }
+
+        User? user = await this.Users.Where(u => u.Username == username).FirstOrDefaultAsync();
+        if (user != null) return user;
 
         Location l = new(); // store to get id after submitting
         this.Locations.Add(l); // add to table
@@ -61,15 +76,23 @@ public class Database : DbContext
             Password = password,
             LocationId = l.Id,
             Biography = username + " hasn't introduced themselves yet.",
+            EmailAddress = emailAddress,
         };
         this.Users.Add(user);
 
         await this.SaveChangesAsync();
 
+        if (emailAddress != null && ServerSettings.Instance.SMTPEnabled)
+        {
+            string body = "An account for Project Lighthouse has been registered with this email address.\n\n" +
+                          $"You can login at {ServerSettings.Instance.ExternalUrl}.";
+
+            SMTPHelper.SendEmail(emailAddress, "Project Lighthouse Account Created: " + username, body);
+        }
+
         return user;
     }
 
-    #nullable enable
     public async Task<GameToken?> AuthenticateUser(NPTicket npTicket, string userLocation)
     {
         User? user = await this.Users.FirstOrDefaultAsync(u => u.Username == npTicket.Username);
@@ -82,6 +105,7 @@ public class Database : DbContext
             UserId = user.UserId,
             UserLocation = userLocation,
             GameVersion = npTicket.GameVersion,
+            Platform = npTicket.Platform,
         };
 
         this.GameTokens.Add(gameToken);
@@ -143,6 +167,8 @@ public class Database : DbContext
 
     public async Task<bool> PostComment(User user, int targetId, CommentType type, string message)
     {
+        if (message.Length > 100) return false;
+
         if (type == CommentType.Profile)
         {
             User? targetUser = await this.Users.FirstOrDefaultAsync(u => u.UserId == targetId);
@@ -151,7 +177,7 @@ public class Database : DbContext
         else
         {
             Slot? targetSlot = await this.Slots.FirstOrDefaultAsync(u => u.SlotId == targetId);
-            if(targetSlot == null) return false;
+            if (targetSlot == null) return false;
         }
 
         this.Comments.Add

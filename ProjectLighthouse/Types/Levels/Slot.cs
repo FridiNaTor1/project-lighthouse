@@ -19,6 +19,23 @@ namespace LBPUnion.ProjectLighthouse.Types.Levels;
 [XmlType("slot")]
 public class Slot
 {
+    [NotMapped]
+    [JsonIgnore]
+    [XmlIgnore]
+    private Database? _database;
+
+    [NotMapped]
+    [JsonIgnore]
+    [XmlIgnore]
+    private Database database {
+        get {
+            if (this._database != null) return this._database;
+
+            return this._database = new Database();
+        }
+        set => this._database = value;
+    }
+
     [XmlAttribute("type")]
     [NotMapped]
     [JsonIgnore]
@@ -114,26 +131,12 @@ public class Slot
     [XmlIgnore]
     [NotMapped]
     [JsonIgnore]
-    public int Hearts {
-        get {
-            using Database database = new();
-
-            return database.HeartedLevels.Count(s => s.SlotId == this.SlotId);
-        }
-    }
+    public int Hearts => database.HeartedLevels.Count(s => s.SlotId == this.SlotId);
 
     [XmlIgnore]
     [NotMapped]
     [JsonIgnore]
-    public int Comments
-    {
-        get
-        {
-            using Database database = new();
-
-            return database.Comments.Count(c => c.Type == CommentType.Level && c.TargetId == this.SlotId);
-        }
-    }
+    public int Comments => database.Comments.Count(c => c.Type == CommentType.Level && c.TargetId == this.SlotId);
 
     [XmlIgnore]
     [NotMapped]
@@ -198,32 +201,18 @@ public class Slot
     [NotMapped]
     [JsonIgnore]
     [XmlElement("thumbsup")]
-    public int Thumbsup {
-        get {
-            using Database database = new();
-
-            return database.RatedLevels.Count(r => r.SlotId == this.SlotId && r.Rating == 1);
-        }
-    }
+    public int Thumbsup => database.RatedLevels.Count(r => r.SlotId == this.SlotId && r.Rating == 1);
 
     [NotMapped]
     [JsonIgnore]
     [XmlElement("thumbsdown")]
-    public int Thumbsdown {
-        get {
-            using Database database = new();
-
-            return database.RatedLevels.Count(r => r.SlotId == this.SlotId && r.Rating == -1);
-        }
-    }
+    public int Thumbsdown => database.RatedLevels.Count(r => r.SlotId == this.SlotId && r.Rating == -1);
 
     [NotMapped]
     [JsonPropertyName("averageRating")]
     [XmlElement("averageRating")]
     public double RatingLBP1 {
         get {
-            using Database database = new();
-
             IQueryable<RatedLevel> ratedLevels = database.RatedLevels.Where(r => r.SlotId == this.SlotId && r.RatingLBP1 > 0);
             if (!ratedLevels.Any()) return 3.0;
 
@@ -234,13 +223,7 @@ public class Slot
     [NotMapped]
     [JsonIgnore]
     [XmlElement("reviewCount")]
-    public int ReviewCount {
-        get {
-            using Database database = new();
-
-            return database.Reviews.Count(r => r.SlotId == this.SlotId);
-        }
-    }
+    public int ReviewCount => database.Reviews.Count(r => r.SlotId == this.SlotId);
 
     [XmlElement("leveltype")]
     public string LevelType { get; set; } = "";
@@ -254,8 +237,15 @@ public class Slot
                LbpSerializer.StringElement("sizeOfResources", this.Resources.Sum(FileHelper.ResourceSize));
     }
 
-    public string Serialize(RatedLevel? yourRatingStats = null, VisitedLevel? yourVisitedStats = null, Review? yourReview = null)
+    public string Serialize
+    (
+        GameVersion gameVersion = GameVersion.LittleBigPlanet1,
+        RatedLevel? yourRatingStats = null,
+        VisitedLevel? yourVisitedStats = null,
+        Review? yourReview = null
+    )
     {
+        int playerCount = RoomHelper.Rooms.Count(r => r.Slot.SlotType == SlotType.User && r.Slot.SlotId == this.SlotId);
 
         string slotData = LbpSerializer.StringElement("name", this.Name) +
                           LbpSerializer.StringElement("id", this.SlotId) +
@@ -287,28 +277,50 @@ public class Slot
                           LbpSerializer.StringElement("lbp1PlayCount", this.PlaysLBP1) +
                           LbpSerializer.StringElement("lbp1CompletionCount", this.PlaysLBP1Complete) +
                           LbpSerializer.StringElement("lbp1UniquePlayCount", this.PlaysLBP1Unique) +
-                          LbpSerializer.StringElement("lbp2PlayCount", this.PlaysLBP2) +
-                          LbpSerializer.StringElement("lbp2CompletionCount", this.PlaysLBP2Complete) +
-                          LbpSerializer.StringElement("lbp2UniquePlayCount", this.PlaysLBP2Unique) + // not actually used ingame, as per above comment
                           LbpSerializer.StringElement("lbp3PlayCount", this.PlaysLBP3) +
                           LbpSerializer.StringElement("lbp3CompletionCount", this.PlaysLBP3Complete) +
                           LbpSerializer.StringElement("lbp3UniquePlayCount", this.PlaysLBP3Unique) +
-                          LbpSerializer.StringElement("vitaCrossControlRequired", this.CrossControllerRequired) +
                           LbpSerializer.StringElement("thumbsup", this.Thumbsup) +
                           LbpSerializer.StringElement("thumbsdown", this.Thumbsdown) +
                           LbpSerializer.StringElement("averageRating", this.RatingLBP1) +
                           LbpSerializer.StringElement("leveltype", this.LevelType) +
                           LbpSerializer.StringElement("yourRating", yourRatingStats?.RatingLBP1) +
                           LbpSerializer.StringElement("yourDPadRating", yourRatingStats?.Rating) +
-                          LbpSerializer.StringElement("yourLBP1PlayCount", yourVisitedStats?.PlaysLBP1) +
-                          LbpSerializer.StringElement("yourLBP2PlayCount", yourVisitedStats?.PlaysLBP2) +
-                          LbpSerializer.StringElement("yourLBP3PlayCount", yourVisitedStats?.PlaysLBP3) +
-                          LbpSerializer.StringElement
-                              ("yourLBPVitaPlayCount", yourVisitedStats?.PlaysLBPVita) + // i doubt this is the right name but we'll go with it
+                          LbpSerializer.StringElement("yourlbpPlayCount", yourVisitedStats?.PlaysLBP1) +
+                          LbpSerializer.StringElement("yourlbp3PlayCount", yourVisitedStats?.PlaysLBP3) +
                           yourReview?.Serialize("yourReview") +
                           LbpSerializer.StringElement("reviewsEnabled", ServerSettings.Instance.LevelReviewsEnabled) +
                           LbpSerializer.StringElement("commentsEnabled", ServerSettings.Instance.LevelCommentsEnabled) +
+                          LbpSerializer.StringElement("playerCount", playerCount) +
                           LbpSerializer.StringElement("reviewCount", this.ReviewCount);
+
+        int yourPlays;
+        int plays;
+        int playsComplete;
+        int playsUnique;
+
+        if (gameVersion == GameVersion.LittleBigPlanetVita)
+        {
+            yourPlays = yourVisitedStats?.PlaysLBPVita ?? 0;
+            plays = this.PlaysLBPVita;
+            playsComplete = this.PlaysLBPVitaComplete;
+            playsUnique = this.PlaysLBPVitaUnique;
+        }
+        else
+        {
+            yourPlays = yourVisitedStats?.PlaysLBP2 ?? 0;
+            plays = this.PlaysLBP2;
+            playsComplete = this.PlaysLBP2Complete;
+            playsUnique = this.PlaysLBP2Unique;
+        }
+
+        slotData += LbpSerializer.StringElement("yourlbp2PlayCount", yourPlays) +
+                    LbpSerializer.StringElement("lbp2PlayCount", plays) +
+                    LbpSerializer.StringElement("playCount", plays) +
+                    LbpSerializer.StringElement("lbp2CompletionCount", playsComplete) +
+                    LbpSerializer.StringElement("completionCount", playsComplete) +
+                    LbpSerializer.StringElement("lbp2UniquePlayCount", playsUnique) + // not actually used ingame, as per above comment
+                    LbpSerializer.StringElement("uniquePlayCount", playsUnique);
 
         return LbpSerializer.TaggedStringElement("slot", slotData, "type", "user");
     }

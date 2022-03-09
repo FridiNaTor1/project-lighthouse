@@ -81,6 +81,9 @@ namespace ProjectLighthouse.Migrations
                     b.Property<int>("GameVersion")
                         .HasColumnType("int");
 
+                    b.Property<int>("Platform")
+                        .HasColumnType("int");
+
                     b.Property<bool>("Used")
                         .HasColumnType("tinyint(1)");
 
@@ -449,6 +452,44 @@ namespace ProjectLighthouse.Migrations
                     b.ToTable("Comments");
                 });
 
+            modelBuilder.Entity("LBPUnion.ProjectLighthouse.Types.Profiles.Email.EmailSetToken", b =>
+                {
+                    b.Property<int>("EmailSetTokenId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("EmailToken")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("EmailSetTokenId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("EmailSetTokens");
+                });
+
+            modelBuilder.Entity("LBPUnion.ProjectLighthouse.Types.Profiles.Email.EmailVerificationToken", b =>
+                {
+                    b.Property<int>("EmailVerificationTokenId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("EmailToken")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("EmailVerificationTokenId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("EmailVerificationTokens");
+                });
+
             modelBuilder.Entity("LBPUnion.ProjectLighthouse.Types.Profiles.LastContact", b =>
                 {
                     b.Property<int>("UserId")
@@ -456,6 +497,9 @@ namespace ProjectLighthouse.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("GameVersion")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Platform")
                         .HasColumnType("int");
 
                     b.Property<long>("Timestamp")
@@ -663,6 +707,12 @@ namespace ProjectLighthouse.Migrations
                     b.Property<string>("BooHash")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("EmailAddress")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("EmailAddressVerified")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<int>("Game")
                         .HasColumnType("int");
 
@@ -687,7 +737,13 @@ namespace ProjectLighthouse.Migrations
                     b.Property<string>("Pins")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("PlanetHash")
+                    b.Property<string>("PlanetHashLBP2")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("PlanetHashLBP3")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("PlanetHashLBPVita")
                         .HasColumnType("longtext");
 
                     b.Property<string>("Username")
@@ -906,6 +962,28 @@ namespace ProjectLighthouse.Migrations
                         .IsRequired();
 
                     b.Navigation("Poster");
+                });
+
+            modelBuilder.Entity("LBPUnion.ProjectLighthouse.Types.Profiles.Email.EmailSetToken", b =>
+                {
+                    b.HasOne("LBPUnion.ProjectLighthouse.Types.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("LBPUnion.ProjectLighthouse.Types.Profiles.Email.EmailVerificationToken", b =>
+                {
+                    b.HasOne("LBPUnion.ProjectLighthouse.Types.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("LBPUnion.ProjectLighthouse.Types.Reports.GriefReport", b =>

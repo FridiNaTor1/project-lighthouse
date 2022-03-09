@@ -12,7 +12,7 @@ namespace LBPUnion.ProjectLighthouse.Types.Settings;
 [Serializable]
 public class ServerSettings
 {
-    public const int CurrentConfigVersion = 21; // MUST BE INCREMENTED FOR EVERY CONFIG CHANGE!
+    public const int CurrentConfigVersion = 24; // MUST BE INCREMENTED FOR EVERY CONFIG CHANGE!
     private static FileSystemWatcher fileWatcher;
     static ServerSettings()
     {
@@ -113,7 +113,8 @@ public class ServerSettings
     public string DbConnectionString { get; set; } = "server=127.0.0.1;uid=root;pwd=lighthouse;database=lighthouse";
 
     public string ExternalUrl { get; set; } = "http://localhost:10060";
-    public string ServerDigestKey { get; set; }
+    public string ServerDigestKey { get; set; } = "";
+    public string AlternateDigestKey { get; set; } = "";
     public bool UseExternalAuth { get; set; }
 
     public bool CheckForUnsafeFiles { get; set; } = true;
@@ -147,8 +148,6 @@ public class ServerSettings
 
     public string DiscordWebhookUrl { get; set; } = "";
 
-    public bool VitaCreateMode { get; set; }
-
     public bool ConfigReloading { get; set; } = true;
 
     public string MissingIconHash { get; set; } = "";
@@ -160,6 +159,24 @@ public class ServerSettings
     public string HCaptchaSecret { get; set; } = "";
 
     public string ServerListenUrl { get; set; } = "http://localhost:10060";
+
+    #region SMTP
+
+    public bool SMTPEnabled { get; set; }
+
+    public string SMTPHost { get; set; } = "";
+
+    public int SMTPPort { get; set; } = 587;
+
+    public string SMTPFromAddress { get; set; } = "lighthouse@example.com";
+
+    public string SMTPFromName { get; set; } = "Project Lighthouse";
+
+    public string SMTPPassword { get; set; } = "";
+
+    public bool SMTPSsl { get; set; } = true;
+
+    #endregion
 
     #region Meta
 
