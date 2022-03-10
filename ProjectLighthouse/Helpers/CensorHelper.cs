@@ -1,76 +1,23 @@
+using System;
 using System.Text;
+using LBPUnion.ProjectLighthouse.Types;
 using LBPUnion.ProjectLighthouse.Types.Settings;
 
 namespace LBPUnion.ProjectLighthouse.Helpers;
 
-public enum FilterMode
-{
-    None,
-    Asterisks,
-    Random,
-    Furry,
-}
-
 public static class CensorHelper
 {
-    private static readonly char[] _randomCharacters =
+    private static readonly char[] randomCharacters =
     {
-        '!',
-        '@',
-        '#',
-        '$',
-        '&',
-        '%',
-        '-',
-        'A',
-        'b',
-        'C',
-        'd',
-        'E',
-        'f',
-        'G',
-        'h',
-        'I',
-        'j',
-        'K',
-        'l',
-        'M',
-        'n',
-        'O',
-        'p',
-        'Q',
-        'r',
-        'S',
-        't',
-        'U',
-        'v',
-        'W',
-        'x',
-        'Y',
-        'z',
+        '!', '@', '#', '$', '&', '%', '-', '_',
     };
 
-    private static readonly string[] _randomFurry =
+    private static readonly string[] randomFurry =
     {
-        "UwU",
-        "OwO",
-        "uwu",
-        "owo",
-        "o3o",
-        ">.>",
-        "*pounces on you*",
-        "*boops*",
-        "*baps*",
-        ":P",
-        "x3",
-        "O_O",
-        "xD",
-        ":3",
-        ";3",
-        "^w^",
+        "UwU", "OwO", "uwu", "owo", "o3o", ">.>", "*pounces on you*", "*boops*", "*baps*", ":P", "x3", "O_O", "xD", ":3", ";3", "^w^",
     };
 
-    private static readonly string[] _censorList = ResourceHelper.readManifestFile("chatCensoredList.txt").Split("\n");
+    private static readonly string[] censorList = ResourceHelper.readManifestFile("chatCensoredList.txt").Split("\n");
 
     public static string ScanMessage(string message)
     {
@@ -78,14 +25,10 @@ public static class CensorHelper
 
         int profaneIndex = -1;
 
-        foreach (string profanity in _censorList)
+        foreach (string profanity in censorList)
             do
             {
-                profaneIndex = message.ToLower().IndexOf(profanity);
-                if (profaneIndex != -1)
-                    message = Censor(profaneIndex,
-                        profanity.Length,
-                        message);
+                profaneIndex = message.ToLower().IndexOf(profanity, StringComparison.Ordinal);
             }
             while (profaneIndex != -1);
 
@@ -96,46 +39,57 @@ public static class CensorHelper
     {
         StringBuilder sb = new();
 
-        string randomWord;
-        char randomChar;
         char prevRandomChar = '\0';
 
-        sb.Append(message.Substring(0,
-            profanityIndex));
+        sb.Append(message.AsSpan(0, profanityIndex));
 
         switch (ServerSettings.Instance.UserInputFilterMode)
         {
             case FilterMode.Random:
-                for (int i = 0; i < profanityLength; i++)
-                    lock (RandomHelper.random)
+                for(int i = 0; i < profanityLength; i++)
+                    lock(RandomHelper.random)
                     {
-                        randomChar = _randomCharacters[RandomHelper.random.Next(0,
-                            _randomCharacters.Length - 1)];
-                        if (randomChar == prevRandomChar)
-                            randomChar = _randomCharacters[RandomHelper.random.Next(0,
-                                _randomCharacters.Length - 1)];
+                        if (message[i] == ' ')
+                        {
+                            sb.Append(' ');
+                        }
+                        else
+                        {
+                            char randomChar = randomCharacters[RandomHelper.random.Next(0, randomCharacters.Length - 1)];
+                            if (randomChar == prevRandomChar) randomChar = randomCharacters[RandomHelper.random.Next(0, randomCharacters.Length - 1)];
 
-                        prevRandomChar = randomChar;
+                            prevRandomChar = randomChar;
 
-                        sb.Append(randomChar);
+                            sb.Append(randomChar);
+                        }
                     }
 
                 break;
             case FilterMode.Asterisks:
-                for (int i = 0; i < profanityLength; i++) sb.Append('*');
+                for(int i = 0; i < profanityLength; i++)
+                {
+                    if (message[i] == ' ')
+                    {
+                        sb.Append(' ');
+                    }
+                    else
+                    {
+                        sb.Append('*');
+                    }
+                }
+
                 break;
             case FilterMode.Furry:
-                lock (RandomHelper.random)
+                lock(RandomHelper.random)
                 {
-                    randomWord = _randomFurry[RandomHelper.random.Next(0,
-                        _randomFurry.Length - 1)];
+                    string randomWord = randomFurry[RandomHelper.random.Next(0, randomFurry.Length - 1)];
                     sb.Append(randomWord);
                 }
 
                 break;
         }
 
-        sb.Append(message.Substring(profanityIndex + profanityLength));
+        sb.Append(message.AsSpan(profanityIndex + profanityLength));
 
         return sb.ToString();
     }

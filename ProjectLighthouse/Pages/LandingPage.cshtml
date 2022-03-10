@@ -30,7 +30,7 @@
     <p>There is 1 user currently online:</p>
     @foreach (User user in Model.PlayersOnline)
     {
-        <a href="/user/@user.UserId">@user.Username</a>
+        <a href="/user/@user.UserId" title="@user.Status.ToString()">@user.Username</a>
     }
 }
 
@@ -43,6 +43,6 @@ else
     <p>There are currently @Model.PlayersOnlineCount users online:</p>
     @foreach (User user in Model.PlayersOnline)
     {
-        <a href="/user/@user.UserId">@user.Username</a>
+        <a href="/user/@user.UserId" title="@user.Status.ToString()">@user.Username</a>
     }
 }

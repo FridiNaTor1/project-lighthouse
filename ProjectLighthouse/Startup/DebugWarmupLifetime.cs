@@ -37,8 +37,20 @@ public class DebugWarmupLifetime : IHostLifetime
     {
         using HttpClient client = new();
 
+        string url = ServerSettings.Instance.ServerListenUrl;
+        url = url.Replace("0.0.0.0", "127.0.0.1");
+
         Logger.Log("Warming up Hot Reload...", LoggerLevelStartup.Instance);
-        client.GetAsync(ServerSettings.Instance.ServerListenUrl).Wait();
+        try
+        {
+            client.GetAsync(url).Wait();
+        }
+        catch(Exception e)
+        {
+            Logger.Log("An error occurred while attempting to warm up hot reload. Initial page load will be delayed.", LoggerLevelStartup.Instance);
+            Logger.Log(e.Message, LoggerLevelStartup.Instance);
+            return;
+        }
         Logger.Log("Hot Reload is ready to go!", LoggerLevelStartup.Instance);
     }
 
