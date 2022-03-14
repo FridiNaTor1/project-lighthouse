@@ -1,9 +1,8 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading.Tasks;
 using LBPUnion.ProjectLighthouse.Serialization;
 using LBPUnion.ProjectLighthouse.Types;
 using LBPUnion.ProjectLighthouse.Types.Levels;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace LBPUnion.ProjectLighthouse.Helpers;
@@ -15,8 +14,9 @@ public static class SlotTypeHelper
     {
         return str switch
         {
-            "developer" => SlotType.Developer,
             "user" => SlotType.User,
+            "developer" => SlotType.Developer,
+            "pod" => SlotType.Pod,
             _ => SlotType.Unknown,
         };
     }
@@ -27,8 +27,13 @@ public static class SlotTypeHelper
     {
         return type switch
         {
-            SlotType.Developer => "developer",
             SlotType.User => "user",
+            SlotType.Developer => "developer",
+            SlotType.Moon => "user",
+            SlotType.Unknown => "unknown",
+            SlotType.Unknown2 => "unknown",
+            SlotType.Pod => "pod",
+            SlotType.DLC => "developer",
             _ => "unknown",
         };
     }
@@ -52,5 +57,4 @@ public static class SlotTypeHelper
     {
         -1,
     };
-
 }

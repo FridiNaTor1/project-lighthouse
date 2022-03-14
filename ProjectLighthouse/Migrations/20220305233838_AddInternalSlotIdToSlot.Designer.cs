@@ -2,6 +2,7 @@
 using LBPUnion.ProjectLighthouse;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ProjectLighthouse.Migrations
 {
     [DbContext(typeof(Database))]
-    partial class DatabaseModelSnapshot : ModelSnapshot
+    [Migration("20220305233838_AddInternalSlotIdToSlot")]
+    partial class AddInternalSlotIdToSlot
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -133,16 +135,12 @@ namespace ProjectLighthouse.Migrations
                     b.Property<int>("SlotId")
                         .HasColumnType("int");
 
-                    b.Property<int>("SlotType")
-                        .HasColumnType("int");
-
-                    b.Property<long>("Timestamp")
-                        .HasColumnType("bigint");
-
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("HeartedLevelId");
+
+                    b.HasIndex("SlotId");
 
                     b.HasIndex("UserId");
 
@@ -157,9 +155,6 @@ namespace ProjectLighthouse.Migrations
 
                     b.Property<int>("SlotId")
                         .HasColumnType("int");
-
-                    b.Property<long>("Timestamp")
-                        .HasColumnType("bigint");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -703,13 +698,12 @@ namespace ProjectLighthouse.Migrations
                     b.Property<int>("SlotId")
                         .HasColumnType("int");
 
-                    b.Property<int>("SlotType")
-                        .HasColumnType("int");
-
                     b.Property<int>("Type")
                         .HasColumnType("int");
 
                     b.HasKey("ScoreId");
+
+                    b.HasIndex("SlotId");
 
                     b.ToTable("Scores");
                 });
@@ -863,11 +857,19 @@ namespace ProjectLighthouse.Migrations
 
             modelBuilder.Entity("LBPUnion.ProjectLighthouse.Types.Levels.HeartedLevel", b =>
                 {
+                    b.HasOne("LBPUnion.ProjectLighthouse.Types.Levels.Slot", "Slot")
+                        .WithMany()
+                        .HasForeignKey("SlotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("LBPUnion.ProjectLighthouse.Types.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Slot");
 
                     b.Navigation("User");
                 });
@@ -1056,6 +1058,17 @@ namespace ProjectLighthouse.Migrations
                         .IsRequired();
 
                     b.Navigation("Reviewer");
+
+                    b.Navigation("Slot");
+                });
+
+            modelBuilder.Entity("LBPUnion.ProjectLighthouse.Types.Score", b =>
+                {
+                    b.HasOne("LBPUnion.ProjectLighthouse.Types.Levels.Slot", "Slot")
+                        .WithMany()
+                        .HasForeignKey("SlotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Slot");
                 });

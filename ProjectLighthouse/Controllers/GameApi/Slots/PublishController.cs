@@ -188,22 +188,7 @@ public class PublishController : ControllerBase
 
         if (slot.CreatorId != user.UserId) return this.StatusCode(403, "");
 
-        this.database.Locations.Remove(slot.Location);
-        // scores and comments aren't removed because they don't have foreign key restraints
-        this.database.Scores.RemoveRange(this.database.Scores
-            .Where(s => s.SlotId == slot.SlotId && s.SlotType == SlotType.User));
-        this.database.Comments.RemoveRange(this.database.Comments
-            .Where(c => c.TargetId == slot.SlotId && c.Type == CommentType.Level));
-        this.database.HeartedLevels.RemoveRange(this.database.HeartedLevels
-            .Where(s => s.SlotId == slot.SlotId && s.SlotType == SlotType.User));
-        IEnumerable<Photo> photos = this.database.Photos
-            .Where(p => p.SlotId == slot.SlotId && p.SlotType == SlotType.User)
-            .AsEnumerable();
-        foreach(Photo p in photos)
-        {
-            p.SlotId = 0;
-        }
-        this.database.Slots.Remove(slot);
+        await this.database.RemoveSlot(slot);
 
         await this.database.SaveChangesAsync();
 
