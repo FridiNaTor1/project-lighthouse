@@ -1,3 +1,4 @@
+﻿using System;
 using System.Xml.Serialization;
 
 namespace LBPUnion.ProjectLighthouse.Types;

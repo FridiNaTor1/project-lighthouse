@@ -72,12 +72,9 @@ public class Comment
            LbpSerializer.StringElement("npHandle", this.Poster.Username) +
            LbpSerializer.StringElement("timestamp", this.Timestamp) +
            LbpSerializer.StringElement("message", this.Message) +
-           (this.Deleted
-               ? LbpSerializer.StringElement
-                     ("deleted", true) +
-                 LbpSerializer.StringElement("deletedBy", this.DeletedBy) +
-                 LbpSerializer.StringElement("deletedType", this.DeletedBy)
-               : "") +
+           (this.Deleted ? LbpSerializer.StringElement("deleted", true) +
+             LbpSerializer.StringElement("deletedBy", this.DeletedBy) +
+             LbpSerializer.StringElement("deletedType", this.DeletedBy) : "") +
            LbpSerializer.StringElement("thumbsup", this.ThumbsUp) +
            LbpSerializer.StringElement("thumbsdown", this.ThumbsDown);
 

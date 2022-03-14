@@ -14,8 +14,6 @@ public class QueuedLevel
     [ForeignKey(nameof(UserId))]
     public User User { get; set; }
 
-    public long Timestamp { get; set; }
-
     public int SlotId { get; set; }
 
     [ForeignKey(nameof(SlotId))]

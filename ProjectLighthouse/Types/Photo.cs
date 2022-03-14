@@ -16,6 +16,7 @@ namespace LBPUnion.ProjectLighthouse.Types;
 [XmlType("photo")]
 public class Photo
 {
+
     [NotMapped]
     private List<PhotoSubject>? _subjects;
 
@@ -49,9 +50,6 @@ public class Photo
 
     public int SlotId { get; set; }
 
-    [ForeignKey(nameof(SlotId))]
-    public Slot? Slot { get; set; }
-	
     public SlotType SlotType { get; set; }
 
     [NotMapped]
@@ -106,8 +104,7 @@ public class Photo
 
     public string Serialize(int slotId)
     {
-        string slot = LbpSerializer.TaggedStringElement
-            ("slot", LbpSerializer.StringElement("id", slotId), "type", SlotTypeHelper.SlotTypeToString(this.SlotType));
+        string slot = LbpSerializer.TaggedStringElement("slot", LbpSerializer.StringElement("id", slotId), "type", SlotTypeHelper.SlotTypeToString(this.SlotType));
 
         string subjectsAggregate = this.Subjects.Aggregate(string.Empty, (s, subject) => s + subject.Serialize());
 

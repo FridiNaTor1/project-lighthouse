@@ -28,8 +28,7 @@ public class CommentController : ControllerBase
 
     [HttpPost("rateUserComment/{username}")]
     [HttpPost("rateComment/{levelType}/{slotId:int}")]
-    public async Task<IActionResult> RateComment
-        ([FromQuery] int commentId, [FromQuery] int rating, string? username, int? slotId, [FromRoute] string? levelType)
+    public async Task<IActionResult> RateComment([FromQuery] int commentId, [FromQuery] int rating, string? levelType, string? username, int? slotId)
     {
         User? user = await this.database.UserFromGameRequest(this.Request);
         if (user == null) return this.StatusCode(403, "");
@@ -43,10 +42,13 @@ public class CommentController : ControllerBase
         return this.Ok();
     }
 
+<<<<<<< HEAD
     [HttpGet("userComments/{username}")]
+=======
+>>>>>>> parent of 264cf2f (Merge branch 'pr/29')
     [HttpGet("comments/{levelType}/{slotId:int}")]
-    public async Task<IActionResult> GetComments
-        ([FromQuery] int pageStart, [FromQuery] int pageSize, string? username, int? slotId, [FromRoute] string? levelType)
+    [HttpGet("userComments/{username}")]
+    public async Task<IActionResult> GetComments([FromQuery] int pageStart, [FromQuery] int pageSize, string? levelType, string? username, int? slotId)
     {
         User? user = await this.database.UserFromGameRequest(this.Request);
         if (user == null) return this.StatusCode(403, "");
@@ -60,9 +62,11 @@ public class CommentController : ControllerBase
         }
 
         SlotType slotType = SlotTypeHelper.ParseSlotType(levelType);
+
         if (levelType != null && slotType == SlotType.Unknown) return this.BadRequest();
 
-        List<Comment> comments = await this.database.Comments.Include(c => c.Poster)
+        List<Comment> comments = await this.database.Comments.Include
+                (c => c.Poster)
             .Where(c => c.TargetId == targetId && c.Type == type && c.SlotType == slotType)
             .OrderByDescending(c => c.Timestamp)
             .Skip(pageStart - 1)
@@ -84,11 +88,8 @@ public class CommentController : ControllerBase
 
     [HttpPost("postUserComment/{username}")]
     [HttpPost("postComment/{levelType}/{slotId:int}")]
-    public async Task<IActionResult> PostComment(string? username, int? slotId, [FromRoute] string? levelType)
+    public async Task<IActionResult> PostComment(string? levelType, string? username, int? slotId)
     {
-        User? poster = await this.database.UserFromGameRequest(this.Request);
-        if (poster == null) return this.StatusCode(403, "");
-
         SlotType slotType = SlotTypeHelper.ParseSlotType(levelType);
         if (levelType != null && slotType == SlotType.Unknown) return this.BadRequest();
 
@@ -99,6 +100,9 @@ public class CommentController : ControllerBase
         Comment? comment = (Comment?)serializer.Deserialize(new StringReader(bodyString));
 
         CommentType type = (slotId.GetValueOrDefault() == 0 ? CommentType.Profile : CommentType.Level);
+
+        User? poster = await this.database.UserFromGameRequest(this.Request);
+        if (poster == null) return this.StatusCode(403, "");
 
         if (comment == null) return this.BadRequest();
 
@@ -114,16 +118,13 @@ public class CommentController : ControllerBase
 
     [HttpPost("deleteUserComment/{username}")]
     [HttpPost("deleteComment/{levelType}/{slotId:int}")]
-    public async Task<IActionResult> DeleteComment([FromQuery] int commentId, string? username, int? slotId, [FromRoute] string? levelType)
+    public async Task<IActionResult> DeleteComment([FromQuery] int commentId, string? levelType, string? username, int? slotId)
     {
         User? user = await this.database.UserFromGameRequest(this.Request);
         if (user == null) return this.StatusCode(403, "");
 
         Comment? comment = await this.database.Comments.FirstOrDefaultAsync(c => c.CommentId == commentId);
         if (comment == null) return this.NotFound();
-
-        SlotType slotType = SlotTypeHelper.ParseSlotType(levelType);
-        if (levelType != null && slotType == SlotType.Unknown) return this.BadRequest();
 
         // if you are not the poster
         if (comment.PosterUserId != user.UserId)

@@ -202,7 +202,7 @@ namespace ProjectLighthouse.Migrations
 
             modelBuilder.Entity("LBPUnion.ProjectLighthouse.Types.Levels.Slot", b =>
                 {
-                    b.Property<int>("InternalSlotId")
+                    b.Property<int>("SlotId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
@@ -310,19 +310,13 @@ namespace ProjectLighthouse.Migrations
                     b.Property<int>("Shareable")
                         .HasColumnType("int");
 
-                    b.Property<int>("SlotId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SlotType")
-                        .HasColumnType("int");
-
                     b.Property<bool>("SubLevel")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<bool>("TeamPick")
                         .HasColumnType("tinyint(1)");
 
-                    b.HasKey("InternalSlotId");
+                    b.HasKey("SlotId");
 
                     b.HasIndex("CreatorId");
 
@@ -405,8 +399,6 @@ namespace ProjectLighthouse.Migrations
                     b.HasKey("PhotoId");
 
                     b.HasIndex("CreatorId");
-
-                    b.HasIndex("SlotId");
 
                     b.ToTable("Photos");
                 });
@@ -956,15 +948,7 @@ namespace ProjectLighthouse.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("LBPUnion.ProjectLighthouse.Types.Levels.Slot", "Slot")
-                        .WithMany()
-                        .HasForeignKey("SlotId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Creator");
-
-                    b.Navigation("Slot");
                 });
 
             modelBuilder.Entity("LBPUnion.ProjectLighthouse.Types.PhotoSubject", b =>

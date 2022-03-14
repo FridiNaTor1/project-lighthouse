@@ -129,21 +129,17 @@ public class PhotosController : ControllerBase
     }
 
     [HttpGet("photos/{levelType}/{id:int}")]
-    public async Task<IActionResult> SlotPhotos(int id, [FromRoute] string levelType, [FromQuery] int pageStart, [FromQuery] int pageSize)
+    public async Task<IActionResult> SlotPhotos(string levelType, int id, [FromQuery] int pageStart, [FromQuery] int pageSize)
     {
         SlotType slotType = SlotTypeHelper.ParseSlotType(levelType);
-        if (slotType == SlotType.Unknown) return this.NotFound();
-
-        List<Photo> photos = await this.database.Photos.Include
-                (p => p.Creator)
+        if (slotType == SlotType.Unknown) return this.BadRequest();
+        List<Photo> photos = await this.database.Photos.Include(p => p.Creator)
             .Where(p => p.SlotId == id && p.SlotType == slotType)
-            .OrderByDescending(p => p.Timestamp)
+            .OrderByDescending(s => s.Timestamp)
             .Skip(pageStart - 1)
-            .Take(Math.Min(pageSize, ServerStatics.PageSize))
+            .Take(Math.Min(pageSize, 30))
             .ToListAsync();
-
         string response = photos.Aggregate(string.Empty, (s, photo) => s + photo.Serialize(id));
-
         return this.Ok(LbpSerializer.StringElement("photos", response));
     }
 

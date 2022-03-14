@@ -118,8 +118,24 @@ public class ListController : ControllerBase
             .Skip(pageStart - 1)
             .Take(Math.Min(pageSize, 30))
             .ToListAsync();
-
-        string response = heartedLevels.Aggregate(string.Empty, (current, q) => current + q.Slot.Serialize(gameVersion));
+        StringBuilder responseBuilder = new();
+        foreach (HeartedLevel level in heartedLevels)
+        {
+            if (level.SlotType == SlotType.User)
+            {
+                Slot? slot = await this.database.Slots.Include(s => s.Location)
+                    .Include(s => s.Creator)
+                    .Where(s => level.SlotId == s.SlotId)
+                    .Where(s => s.GameVersion <= gameVersion)
+                    .FirstOrDefaultAsync();
+                responseBuilder.Append(slot?.Serialize());
+            }
+            else
+            {
+                string devSlot = await SlotTypeHelper.SerializeDeveloperSlot(this.database, level.SlotId);
+                responseBuilder.Append(devSlot);
+            }
+        }
 
         return this.Ok
         (
@@ -129,7 +145,7 @@ public class ListController : ControllerBase
     }
 
     [HttpPost("favourite/slot/{levelType}/{id:int}")]
-    public async Task<IActionResult> AddFavouriteSlot(int id, [FromRoute] string? levelType)
+    public async Task<IActionResult> AddFavouriteSlot(string levelType, int id)
     {
         User? user = await this.database.UserFromGameRequest(this.Request);
         if (user == null) return this.StatusCode(403, "");
@@ -137,8 +153,11 @@ public class ListController : ControllerBase
         SlotType slotType = SlotTypeHelper.ParseSlotType(levelType);
         if (slotType == SlotType.Unknown) return this.BadRequest();
 
-        Slot? slot = await this.database.Slots.FirstOrDefaultAsync(s => s.SlotId == id);
-        if (slot == null) return this.NotFound();
+        if (slotType == SlotType.User)
+        {
+            Slot? slot = await this.database.Slots.FirstOrDefaultAsync(s => s.SlotId == id);
+            if (slot == null) return this.NotFound();
+        }
 
         await this.database.HeartLevel(user, slot);
 
@@ -146,7 +165,7 @@ public class ListController : ControllerBase
     }
 
     [HttpPost("unfavourite/slot/{levelType}/{id:int}")]
-    public async Task<IActionResult> RemoveFavouriteSlot(int id, [FromRoute] string? levelType)
+    public async Task<IActionResult> RemoveFavouriteSlot(string levelType, int id)
     {
         User? user = await this.database.UserFromGameRequest(this.Request);
         if (user == null) return this.StatusCode(403, "");
@@ -154,8 +173,11 @@ public class ListController : ControllerBase
         SlotType slotType = SlotTypeHelper.ParseSlotType(levelType);
         if (slotType == SlotType.Unknown) return this.BadRequest();
 
-        Slot? slot = await this.database.Slots.FirstOrDefaultAsync(s => s.SlotId == id);
-        if (slot == null) return this.NotFound();
+        if (slotType == SlotType.User)
+        {
+            Slot? slot = await this.database.Slots.FirstOrDefaultAsync(s => s.SlotId == id);
+            if (slot == null) return this.NotFound();
+        }
 
         await this.database.UnheartLevel(user, slot);
 

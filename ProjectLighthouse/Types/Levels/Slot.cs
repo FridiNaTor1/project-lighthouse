@@ -39,15 +39,9 @@ public class Slot
     [XmlAttribute("type")]
     [NotMapped]
     [JsonIgnore]
-    public string Type => SlotTypeHelper.SlotTypeToString(SlotType);
+    public string Type { get; set; } = "user";
 
-    public SlotType SlotType { get; set; } = SlotType.User;
-
-    [JsonIgnore]
-    [XmlIgnore]
     [Key]
-    public int InternalSlotId { get; set; }
-
     [XmlElement("id")]
     public int SlotId { get; set; }
 
@@ -354,6 +348,6 @@ public class Slot
                     LbpSerializer.StringElement("lbp2UniquePlayCount", playsUnique) + // not actually used ingame, as per above comment
                     LbpSerializer.StringElement("uniquePlayCount", playsUnique);
 
-        return LbpSerializer.TaggedStringElement("slot", slotData, "type", this.Type);
+        return LbpSerializer.TaggedStringElement("slot", slotData, "type", "user");
     }
 }
