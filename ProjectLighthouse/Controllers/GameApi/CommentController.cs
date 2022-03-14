@@ -42,6 +42,7 @@ public class CommentController : ControllerBase
 
         return this.Ok();
     }
+
     [HttpGet("userComments/{username}")]
     [HttpGet("comments/{levelType}/{slotId:int}")]
     public async Task<IActionResult> GetComments
@@ -117,9 +118,6 @@ public class CommentController : ControllerBase
     {
         User? user = await this.database.UserFromGameRequest(this.Request);
         if (user == null) return this.StatusCode(403, "");
-
-        SlotType slotType = SlotTypeHelper.ParseSlotType(levelType);
-        if (levelType != null && slotType == SlotType.Unknown) return this.BadRequest();
 
         Comment? comment = await this.database.Comments.FirstOrDefaultAsync(c => c.CommentId == commentId);
         if (comment == null) return this.NotFound();

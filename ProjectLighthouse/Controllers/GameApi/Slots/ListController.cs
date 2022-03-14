@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using LBPUnion.ProjectLighthouse.Helpers;
 using LBPUnion.ProjectLighthouse.Serialization;
@@ -125,7 +124,7 @@ public class ListController : ControllerBase
         return this.Ok
         (
             LbpSerializer.TaggedStringElement
-                ("favouriteSlots", responseBuilder.ToString(), "total", heartedLevels.Count)
+                ("favouriteSlots", response, "total", this.database.HeartedLevels.Include(q => q.User).Count(q => q.User.Username == username))
         );
     }
 
@@ -141,7 +140,7 @@ public class ListController : ControllerBase
         Slot? slot = await this.database.Slots.FirstOrDefaultAsync(s => s.SlotId == id);
         if (slot == null) return this.NotFound();
 
-        await this.database.HeartLevel(user, id, slotType);
+        await this.database.HeartLevel(user, slot);
 
         return this.Ok();
     }
@@ -158,7 +157,7 @@ public class ListController : ControllerBase
         Slot? slot = await this.database.Slots.FirstOrDefaultAsync(s => s.SlotId == id);
         if (slot == null) return this.NotFound();
 
-        await this.database.UnheartLevel(user, id, slotType);
+        await this.database.UnheartLevel(user, slot);
 
         return this.Ok();
     }
