@@ -41,11 +41,6 @@ public class CommentController : ControllerBase
 
         return this.Ok();
     }
-
-<<<<<<< HEAD
-    [HttpGet("userComments/{username}")]
-=======
->>>>>>> parent of 264cf2f (Merge branch 'pr/29')
     [HttpGet("comments/{levelType}/{slotId:int}")]
     [HttpGet("userComments/{username}")]
     public async Task<IActionResult> GetComments([FromQuery] int pageStart, [FromQuery] int pageSize, string? levelType, string? username, int? slotId)
@@ -122,6 +117,9 @@ public class CommentController : ControllerBase
     {
         User? user = await this.database.UserFromGameRequest(this.Request);
         if (user == null) return this.StatusCode(403, "");
+
+        SlotType slotType = SlotTypeHelper.ParseSlotType(levelType);
+        if (levelType != null && slotType == SlotType.Unknown) return this.BadRequest();
 
         Comment? comment = await this.database.Comments.FirstOrDefaultAsync(c => c.CommentId == commentId);
         if (comment == null) return this.NotFound();
