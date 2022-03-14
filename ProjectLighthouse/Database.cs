@@ -176,8 +176,11 @@ public class Database : DbContext
         }
         else
         {
-            Slot? targetSlot = await this.Slots.FirstOrDefaultAsync(u => u.SlotId == targetId && u.SlotType == slotType);
-            if (targetSlot == null) return false;
+            if (slotType == SlotType.User)
+            {
+                Slot? targetSlot = await this.Slots.FirstOrDefaultAsync(u => u.SlotId == targetId);
+                if (targetSlot == null) return false;
+            }
         }
 
         this.Comments.Add
