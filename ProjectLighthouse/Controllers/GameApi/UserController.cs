@@ -34,8 +34,16 @@ public class UserController : ControllerBase
 
     private async Task<string?> getSerializedUserPicture(string username)
     {
-        User? user = await this.database.Users.FirstOrDefaultAsync(u => u.Username == username);
-        return user?.SerializeMini();
+        // use an anonymous type to only fetch certain columns
+        var partialUser = await this.database.Users.Where(u => u.Username == username)
+            .Select(u => new
+            {
+                u.Username,
+                u.IconHash,
+            }).FirstOrDefaultAsync();
+        if (partialUser == null) return null;
+        string user = LbpSerializer.TaggedStringElement("npHandle", partialUser.Username, "icon", partialUser.IconHash);
+        return LbpSerializer.TaggedStringElement("user", user, "type", "user");
     }
 
     [HttpGet("user/{username}")]
